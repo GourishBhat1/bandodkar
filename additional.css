@@ -1,0 +1,39 @@
+#topbar.topbar-scrolled {
+    top: 0 !important;
+}
+
+#header.header-scrolled {
+    top: 40px !important;
+}
+
+
+
+.h1Small {
+    font-size: medium !important;
+}
+
+.logoH6 {
+    font-size: small !important;
+}
+
+.gyronoRed {
+    color: red;
+    font-weight: bolder !important;
+}
+
+.gyronoBlack {
+    color: black !important;
+    font-weight: bolder !important;
+}
+
+.justifyParagraphText {
+    text-align: justify !important;
+}
+
+.timeline-1 .event:before {
+    font-weight: bolder !important;
+}
+
+.visibleAnchor {
+    color: white !important;
+}
