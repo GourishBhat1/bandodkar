@@ -3,14 +3,18 @@
 
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
+<!-- ===============================================-->
+<!--    Document Title-->
+<!-- ===============================================-->
+<title>Bandodkar Clinic | Patient Management System</title>
 
-    <!-- ===============================================-->
-    <!--    Document Title-->
-    <!-- ===============================================-->
-    <title>Falcon | Dashboard &amp; Web App Template</title>
+<!-- Meta description & keywords (optional but recommended) -->
+<meta name="description" content="Bandodkar Clinic Patient Management System – Manage patients, prescriptions, and medical records efficiently.">
+<meta name="keywords" content="Bandodkar Clinic, patient management, prescriptions, medical records, healthcare software">
+<meta name="author" content="Bandodkar Clinic">
 
 
     <!-- ===============================================-->
