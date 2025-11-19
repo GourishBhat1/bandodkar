@@ -65,6 +65,37 @@ if (isset($_POST['delete'])) {
     exit;
 }
 
+// ------------------------------------
+// DELETE PRESCRIPTION
+// ------------------------------------
+if (isset($_POST['delete_prescription'])) {
+
+    $prescription_id = intval($_POST['delete_prescription_id']);
+
+    // Fetch image to delete
+    $getImg = $conn->prepare("SELECT image_path FROM prescriptions WHERE prescription_id = ?");
+    $getImg->bind_param("i", $prescription_id);
+    $getImg->execute();
+    $imgRes = $getImg->get_result()->fetch_assoc();
+    $getImg->close();
+
+    if ($imgRes) {
+        $file = $imgRes['image_path'];
+        if (file_exists($file)) {
+            unlink($file);
+        }
+    }
+
+    // Delete from DB
+    $del = $conn->prepare("DELETE FROM prescriptions WHERE prescription_id = ?");
+    $del->bind_param("i", $prescription_id);
+    $del->execute();
+    $del->close();
+
+    echo "<script>alert('Prescription deleted successfully'); window.location='profile.php?id=$patient_id';</script>";
+    exit;
+}
+
 ?>
 
 <!-- ===============================================-->
@@ -190,18 +221,26 @@ if (isset($_POST['delete'])) {
                 $pres = $q->get_result();
 
                 while ($p = $pres->fetch_assoc()) {
-                  echo "
-                    <tr>
-                      <td>{$p['prescription_id']}</td>
-                      <td>{$p['date_prescribed']}</td>
-                      <td>{$p['description']}</td>
-                      <td>
-                        <a href='{$p['image_path']}' target='_blank' class='btn btn-info btn-sm'>
-                          View
-                        </a>
-                      </td>
-                    </tr>";
-                }
+
+    echo '
+    <tr>
+        <td>'.$p['prescription_id'].'</td>
+        <td>'.$p['date_prescribed'].'</td>
+        <td>'.$p['description'].'</td>
+        <td>
+
+            <form method="POST" onsubmit="return confirm(\'Are you sure you want to delete this prescription?\');" style="display:inline;">
+                <input type="hidden" name="delete_prescription_id" value="'.$p['prescription_id'].'">
+                <button type="submit" name="delete_prescription" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+
+            <a href="'.$p['image_path'].'" target="_blank" class="btn btn-info btn-sm ms-2">
+                View
+            </a>
+
+        </td>
+    </tr>';
+}
                 $q->close();
                 ?>
               </tbody>
