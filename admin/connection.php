@@ -4,9 +4,9 @@ date_default_timezone_set("Asia/Kolkata");
 
 // Database configuration
 $host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "bandodkar";
+$user = "u929750551_bandodkar";
+$pass = ":Xuzbt>HX9d";
+$db   = "u929750551_bandodkar";
 
 // Create connection
 $conn = new mysqli($host, $user, $pass, $db);
