@@ -2,6 +2,11 @@
 include('includes/header.php');
 include('connection.php');
 
+if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
+    header("Location: logout.php");
+    exit();
+}
+
 // ------------------------------------
 // CREATE PATIENT
 // ------------------------------------

@@ -1,5 +1,10 @@
 <?php
 include('includes/header.php');
+
+if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
+    header("Location: logout.php");
+    exit();
+}
 ?>
 
     <!-- ===============================================-->
