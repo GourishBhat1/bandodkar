@@ -56,6 +56,34 @@
         userLinkRTL.setAttribute('disabled', true);
       }
     </script>
+
+    <style>
+/* Hide table layout on mobile */
+@media (max-width: 768px) {
+    table.dataTable thead {
+        display: none;
+    }
+    table.dataTable tbody tr {
+        display: block;
+        margin-bottom: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 12px;
+        background: #fff;
+    }
+    table.dataTable tbody td {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 10px;
+        border: none !important;
+    }
+    table.dataTable tbody td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #333;
+    }
+}
+</style>
   </head>
 
 

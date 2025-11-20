@@ -209,47 +209,44 @@ if (isset($_POST['delete_prescription'])) {
 
           <div class="table-responsive">
             <table id="prescriptionsTable" class="table table-striped table-bordered">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Date</th>
-                  <th>Description</th>
-                  <th>Image</th>
-                </tr>
-              </thead>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Image</th>
+        </tr>
+    </thead>
 
-              <tbody>
-                <?php
-                $q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
-                $q->bind_param("i", $patient_id);
-                $q->execute();
-                $pres = $q->get_result();
+    <tbody>
+        <?php
+        $q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
+        $q->bind_param("i", $patient_id);
+        $q->execute();
+        $pres = $q->get_result();
 
-                while ($p = $pres->fetch_assoc()) {
+        while ($p = $pres->fetch_assoc()) {
 
-    echo '
-    <tr>
-        <td>'.$p['prescription_id'].'</td>
-        <td>'.$p['date_prescribed'].'</td>
-        <td>'.$p['description'].'</td>
-        <td>
+            echo '
+            <tr>
+                <td data-label="ID">'.$p['prescription_id'].'</td>
+                <td data-label="Date">'.$p['date_prescribed'].'</td>
+                <td data-label="Description">'.$p['description'].'</td>
 
-            <form method="POST" onsubmit="return confirm(\'Are you sure you want to delete this prescription?\');" style="display:inline;">
-                <input type="hidden" name="delete_prescription_id" value="'.$p['prescription_id'].'">
-                <button type="submit" name="delete_prescription" class="btn btn-danger btn-sm">Delete</button>
-            </form>
+                <td data-label="Actions">
+                    <form method="POST" onsubmit="return confirm(\'Are you sure you want to delete this prescription?\');" style="display:inline;">
+                        <input type="hidden" name="delete_prescription_id" value="'.$p['prescription_id'].'">
+                        <button type="submit" name="delete_prescription" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
 
-            <a href="'.$p['image_path'].'" target="_blank" class="btn btn-info btn-sm ms-2">
-                View
-            </a>
-
-        </td>
-    </tr>';
-}
-                $q->close();
-                ?>
-              </tbody>
-            </table>
+                    <a href="'.$p['image_path'].'" target="_blank" class="btn btn-info btn-sm ms-2">View</a>
+                </td>
+            </tr>';
+        }
+        $q->close();
+        ?>
+    </tbody>
+</table>
           </div>
 
         </div>
@@ -268,7 +265,9 @@ if (isset($_POST['delete_prescription'])) {
 
 <script>
   $(document).ready(function () {
-      $('#prescriptionsTable').DataTable();
+      $('#prescriptionsTable').DataTable({
+        responsive: true
+      });
   });
 </script>
 

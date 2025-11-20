@@ -43,40 +43,50 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
   <div class="card-body">
     <div class="table-responsive">
       <table class="table table-striped table-bordered" id="patientsTable">
-        <thead>
-          <tr>
+    <thead>
+        <tr>
             <th>#</th>
             <th>Full Name</th>
             <th>Gender</th>
             <th>Phone</th>
             <th>View Profile</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php
-          include('connection.php');
-          $sql = "SELECT patient_id, first_name, last_name, gender, phone_number FROM patients ORDER BY patient_id DESC";
-          $result = $conn->query($sql);
+        </tr>
+    </thead>
 
-          if ($result->num_rows > 0) {
+    <tbody>
+        <?php
+        include('connection.php');
+
+        $sql = "SELECT patient_id, first_name, last_name, gender, phone_number 
+                FROM patients 
+                ORDER BY patient_id DESC";
+
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-              $full_name = trim($row['first_name'] . ' ' . $row['last_name']);
-              echo '<tr>
-                      <td>' . $row['patient_id'] . '</td>
-                      <td>' . $full_name . '</td>
-                      <td>' . $row['gender'] . '</td>
-                      <td>' . $row['phone_number'] . '</td>
-                      <td>
-                        <a href="profile.php?id=' . $row['patient_id'] . '" class="btn btn-sm btn-info">
-                          View
+
+                $full_name = trim($row['first_name'] . ' ' . $row['last_name']);
+
+                echo '
+                <tr>
+                    <td data-label="ID">'.$row['patient_id'].'</td>
+                    <td data-label="Full Name">'.$full_name.'</td>
+                    <td data-label="Gender">'.$row['gender'].'</td>
+                    <td data-label="Phone">'.$row['phone_number'].'</td>
+
+                    <td data-label="Action">
+                        <a href="profile.php?id='.$row['patient_id'].'" 
+                           class="btn btn-sm btn-info">
+                            View
                         </a>
-                      </td>
-                    </tr>';
+                    </td>
+                </tr>';
             }
-          }
-          ?>
-        </tbody>
-      </table>
+        }
+        ?>
+    </tbody>
+</table>
     </div>
   </div>
 </div>
@@ -96,7 +106,9 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
           <!-- DataTables JS -->
 <script>
   $(document).ready(function () {
-      $('#patientsTable').DataTable();
+      $('#patientsTable').DataTable({
+        responsive: true
+      });
   });
 </script>
   </body>
