@@ -1,0 +1,15 @@
+User-agent: *
+Disallow: /
+
+# Prevent indexing of all admin/patient portals
+Disallow: /login.php
+Disallow: /logout.php
+Disallow: /profile.php
+Disallow: /create-patient.php
+Disallow: /prescription.php
+Disallow: /patients.php
+Disallow: /assets/
+Disallow: /uploads/
+
+# Allow nothing else
+Noindex: /

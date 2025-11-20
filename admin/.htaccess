@@ -1,0 +1,44 @@
+############################################
+# SECURITY BASELINE
+############################################
+
+# Disable directory browsing
+Options -Indexes
+
+# Block PHP execution in uploads
+<Directory "/uploads">
+    php_flag engine off
+</Directory>
+
+############################################
+# FORCE HTTPS
+############################################
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+############################################
+# BASIC SECURITY HEADERS (Hostinger safe)
+############################################
+<IfModule mod_headers.c>
+Header set X-Frame-Options "DENY"
+Header set X-XSS-Protection "1; mode=block"
+Header set X-Content-Type-Options "nosniff"
+Header set Referrer-Policy "no-referrer"
+Header always set Content-Security-Policy "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'"
+</IfModule>
+
+############################################
+# CACHING (Improves performance)
+############################################
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpg "access 1 month"
+  ExpiresByType image/jpeg "access 1 month"
+  ExpiresByType image/png "access 1 month"
+  ExpiresByType image/gif "access 1 month"
+  ExpiresByType text/css "access 1 month"
+  ExpiresByType application/javascript "access 1 month"
+  ExpiresByType application/pdf "access 1 month"
+  ExpiresDefault "access 2 days"
+</IfModule>
