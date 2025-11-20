@@ -1,7 +1,7 @@
 {
   "name": "Bandodkar Clinic PMS",
   "short_name": "Clinic PMS",
-  "start_url": "/index.php",
+  "start_url": "index.php",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0066cc",
