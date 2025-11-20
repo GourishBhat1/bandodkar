@@ -15,20 +15,36 @@
 <meta name="description" content="Bandodkar Clinic Patient Management System – Manage patients, prescriptions, and medical records efficiently.">
 <meta name="keywords" content="Bandodkar Clinic, patient management, prescriptions, medical records, healthcare software">
 <meta name="author" content="Bandodkar Clinic">
+<!-- ===============================================-->
+<!--    PWA Setup -->
+<!-- ===============================================-->
 
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0066cc">
 
-    <!-- ===============================================-->
-    <!--    Favicons-->
-    <!-- ===============================================-->
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicons/favicon-16x16.png">
-    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicons/favicon.ico">
-    <link rel="manifest" href="assets/img/favicons/manifest.json">
-    <meta name="msapplication-TileImage" content="assets/img/favicons/mstile-150x150.png">
-    <meta name="theme-color" content="#ffffff">
-    <script src="assets/js/config.js"></script>
-    <script src="vendors/overlayscrollbars/OverlayScrollbars.min.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+    .then(() => console.log("Service Worker registered"));
+}
+</script>
+
+<!-- ===============================================-->
+<!--    Favicons -->
+<!-- ===============================================-->
+
+<!-- Standard browser icon -->
+<link rel="icon" type="image/png" sizes="192x192" href="assets/img/favicons/icon-192.png">
+
+<!-- Apple devices -->
+<link rel="apple-touch-icon" href="assets/img/favicons/icon-192.png">
+
+<!-- ===============================================-->
+<!--    Vendor Scripts -->
+<!-- ===============================================-->
+
+<script src="assets/js/config.js"></script>
+<script src="vendors/overlayscrollbars/OverlayScrollbars.min.js"></script>
 
 
     <!-- ===============================================-->

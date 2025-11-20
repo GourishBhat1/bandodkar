@@ -5,31 +5,37 @@
 # Disable directory browsing
 Options -Indexes
 
-# Block PHP execution in uploads
-<Directory "/uploads">
-    php_flag engine off
-</Directory>
+############################################
+# BLOCK PHP EXECUTION IN UPLOADS (Hostinger compatible)
+############################################
+# Prevent PHP execution inside /uploads/
+RewriteEngine On
+RewriteRule ^uploads/.*\.(php|php[0-9]|phtml)$ - [F,L]
 
 ############################################
 # FORCE HTTPS
 ############################################
-RewriteEngine On
 RewriteCond %{HTTPS} !=on
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 ############################################
-# BASIC SECURITY HEADERS (Hostinger safe)
+# BASIC SECURITY HEADERS
 ############################################
 <IfModule mod_headers.c>
-Header set X-Frame-Options "DENY"
-Header set X-XSS-Protection "1; mode=block"
-Header set X-Content-Type-Options "nosniff"
-Header set Referrer-Policy "no-referrer"
-Header always set Content-Security-Policy "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'"
+    Header always set X-Frame-Options "DENY"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "no-referrer"
+    Header always set Content-Security-Policy "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'"
 </IfModule>
 
 ############################################
-# CACHING (Improves performance)
+# PWA MIME FIX
+############################################
+AddType application/manifest+json .json
+
+############################################
+# CACHING (Performance)
 ############################################
 <IfModule mod_expires.c>
   ExpiresActive On
