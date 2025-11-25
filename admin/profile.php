@@ -36,19 +36,17 @@ if (!$patient) {
 // ------------------------------------
 if (isset($_POST['update'])) {
 
-    $first = $_POST['first_name'];
-    $last = $_POST['last_name'];
-    $dob = $_POST['birth_date'];
-    $gender = $_POST['gender'];
-    $address = $_POST['address'];
-    $phone = $_POST['phone_number'];
+    $first = trim($_POST['first_name']);
+    $last  = trim($_POST['last_name']);
+    $phone = trim($_POST['phone_number']);
+    $updated_at = date("Y-m-d H:i:s");
 
     $stmt = $conn->prepare("
         UPDATE patients 
-        SET first_name=?, last_name=?, birth_date=?, gender=?, address=?, phone_number=?, updated_at=NOW()
+        SET first_name=?, last_name=?, phone_number=?, updated_at=?
         WHERE patient_id=?
     ");
-    $stmt->bind_param("ssssssi", $first, $last, $dob, $gender, $address, $phone, $patient_id);
+    $stmt->bind_param("ssssi", $first, $last, $phone, $updated_at, $patient_id);
     $stmt->execute();
     $stmt->close();
 
@@ -77,21 +75,18 @@ if (isset($_POST['delete_prescription'])) {
 
     $prescription_id = intval($_POST['delete_prescription_id']);
 
-    // Fetch image to delete
+    // Get image path
     $getImg = $conn->prepare("SELECT image_path FROM prescriptions WHERE prescription_id = ?");
     $getImg->bind_param("i", $prescription_id);
     $getImg->execute();
     $imgRes = $getImg->get_result()->fetch_assoc();
     $getImg->close();
 
-    if ($imgRes) {
-        $file = $imgRes['image_path'];
-        if (file_exists($file)) {
-            unlink($file);
-        }
+    if ($imgRes && file_exists($imgRes['image_path'])) {
+        unlink($imgRes['image_path']);
     }
 
-    // Delete from DB
+    // Delete record
     $del = $conn->prepare("DELETE FROM prescriptions WHERE prescription_id = ?");
     $del->bind_param("i", $prescription_id);
     $del->execute();
@@ -125,7 +120,7 @@ if (isset($_POST['delete_prescription'])) {
       <?php include('includes/navbar.php'); ?>
 
       <!-- ===============================================-->
-      <!-- PATIENT DETAILS CARD -->
+      <!-- PATIENT DETAILS FORM -->
       <!-- ===============================================-->
       <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -140,48 +135,30 @@ if (isset($_POST['delete_prescription'])) {
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label>First Name</label>
-                <input type="text" name="first_name" class="form-control" value="<?php echo $patient['first_name']; ?>">
+                <input type="text" name="first_name" class="form-control"
+                  value="<?php echo $patient['first_name']; ?>" required>
               </div>
 
               <div class="col-md-6 mb-3">
                 <label>Last Name</label>
-                <input type="text" name="last_name" class="form-control" value="<?php echo $patient['last_name']; ?>">
+                <input type="text" name="last_name" class="form-control"
+                  value="<?php echo $patient['last_name']; ?>">
               </div>
             </div>
 
             <div class="row">
-
-              <div class="col-md-4 mb-3">
-                <label>Date of Birth</label>
-                <input type="date" name="birth_date" class="form-control" value="<?php echo $patient['birth_date']; ?>">
-              </div>
-
-              <div class="col-md-4 mb-3">
-                <label>Gender</label>
-                <select name="gender" class="form-control">
-                  <option value="">-- Select --</option>
-                  <option value="Male" <?php if ($patient['gender']=="Male") echo "selected"; ?>>Male</option>
-                  <option value="Female" <?php if ($patient['gender']=="Female") echo "selected"; ?>>Female</option>
-                </select>
-              </div>
-
-              <div class="col-md-4 mb-3">
+              <div class="col-md-6 mb-3">
                 <label>Phone Number</label>
-                <input type="text" name="phone_number" class="form-control" value="<?php echo $patient['phone_number']; ?>">
+                <input type="text" name="phone_number" class="form-control"
+                  value="<?php echo $patient['phone_number']; ?>">
               </div>
-
-            </div>
-
-            <div class="mb-3">
-              <label>Address</label>
-              <textarea name="address" class="form-control"><?php echo $patient['address']; ?></textarea>
             </div>
 
             <div class="d-flex justify-content-between mt-3">
               <button type="submit" name="update" class="btn btn-primary">Update</button>
 
               <button type="submit" name="delete" class="btn btn-danger"
-                onclick="return confirm('Are you sure you want to delete this patient? This cannot be undone.');">
+                onclick="return confirm('Are you sure you want to delete this patient? This action cannot be undone.');">
                 Delete Patient
               </button>
             </div>
@@ -192,9 +169,8 @@ if (isset($_POST['delete_prescription'])) {
       </div>
 
 
-
       <!-- ===============================================-->
-      <!-- PRESCRIPTIONS TABLE -->
+      <!-- PRESCRIPTIONS LIST -->
       <!-- ===============================================-->
       <div class="card mb-5">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -209,44 +185,46 @@ if (isset($_POST['delete_prescription'])) {
 
           <div class="table-responsive">
             <table id="prescriptionsTable" class="table table-striped table-bordered">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Image</th>
-        </tr>
-    </thead>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
 
-    <tbody>
-        <?php
-        $q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
-        $q->bind_param("i", $patient_id);
-        $q->execute();
-        $pres = $q->get_result();
+              <tbody>
+                <?php
+                $q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
+                $q->bind_param("i", $patient_id);
+                $q->execute();
+                $pres = $q->get_result();
 
-        while ($p = $pres->fetch_assoc()) {
+                while ($p = $pres->fetch_assoc()) {
+                    echo '
+                    <tr>
+                        <td>'.$p['prescription_id'].'</td>
+                        <td>'.$p['date_prescribed'].'</td>
+                        <td>'.$p['description'].'</td>
+                        <td>
+                            <form method="POST" style="display:inline;"
+                              onsubmit="return confirm(\'Are you sure you want to delete this prescription?\');">
+                                <input type="hidden" name="delete_prescription_id" value="'.$p['prescription_id'].'">
+                                <button type="submit" name="delete_prescription" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
 
-            echo '
-            <tr>
-                <td data-label="ID">'.$p['prescription_id'].'</td>
-                <td data-label="Date">'.$p['date_prescribed'].'</td>
-                <td data-label="Description">'.$p['description'].'</td>
+                            <a href="'.$p['image_path'].'" target="_blank" class="btn btn-info btn-sm ms-2">
+                              View
+                            </a>
+                        </td>
+                    </tr>';
+                }
+                $q->close();
+                ?>
+              </tbody>
 
-                <td data-label="Actions">
-                    <form method="POST" onsubmit="return confirm(\'Are you sure you want to delete this prescription?\');" style="display:inline;">
-                        <input type="hidden" name="delete_prescription_id" value="'.$p['prescription_id'].'">
-                        <button type="submit" name="delete_prescription" class="btn btn-danger btn-sm">Delete</button>
-                    </form>
-
-                    <a href="'.$p['image_path'].'" target="_blank" class="btn btn-info btn-sm ms-2">View</a>
-                </td>
-            </tr>';
-        }
-        $q->close();
-        ?>
-    </tbody>
-</table>
+            </table>
           </div>
 
         </div>
@@ -266,7 +244,7 @@ if (isset($_POST['delete_prescription'])) {
 <script>
   $(document).ready(function () {
       $('#prescriptionsTable').DataTable({
-        responsive: true
+          responsive: true
       });
   });
 </script>
