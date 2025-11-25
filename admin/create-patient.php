@@ -2,40 +2,46 @@
 include('includes/header.php');
 include('connection.php');
 
+// -------------------------------------------------
+// CHECK LOGIN VIA COOKIE
+// -------------------------------------------------
 if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
     header("Location: logout.php");
     exit();
 }
 
-// ------------------------------------
+// -------------------------------------------------
 // CREATE PATIENT
-// ------------------------------------
+// -------------------------------------------------
 if (isset($_POST['create'])) {
 
-    $first = $_POST['first_name'];
-    $last = $_POST['last_name'];
-    $dob = $_POST['birth_date'];
-    $gender = $_POST['gender'];
-    $address = $_POST['address'];
-    $phone = $_POST['phone_number'];
+    // Sanitize inputs to prevent SQL injection and XSS
+    $first = mysqli_real_escape_string($conn, trim($_POST['first_name']));
+    $last  = mysqli_real_escape_string($conn, trim($_POST['last_name']));
+    $phone = mysqli_real_escape_string($conn, trim($_POST['phone_number']));
 
-    // Logged-in user
-    $created_by = isset($_COOKIE['user_id']) ? intval($_COOKIE['user_id']) : 0;
+    // Logged-in user ID
+    $userId = intval($_COOKIE['user_id']);
 
-    // Insert with user_id
+    // PHP timestamps (requested)
+    $createdAt = date("Y-m-d H:i:s");
+    $updatedAt = date("Y-m-d H:i:s");
+
+    // Insert new patient
     $stmt = $conn->prepare("
-        INSERT INTO patients (user_id, first_name, last_name, birth_date, gender, address, phone_number, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+        INSERT INTO patients (user_id, first_name, last_name, phone_number, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
     ");
 
     if (!$stmt) {
-        die("Prepare failed: " . $conn->error);
+        die("Prepare Error: " . $conn->error);
     }
 
-    $stmt->bind_param("issssss", $created_by, $first, $last, $dob, $gender, $address, $phone);
+    $stmt->bind_param("isssss", $userId, $first, $last, $phone, $createdAt, $updatedAt);
 
     if (!$stmt->execute()) {
-        die("Execute Failed: " . $stmt->error);  // Debug
+        // Improve error handling
+        die("Execute Error: " . $stmt->error);
     }
 
     $newId = $stmt->insert_id;
@@ -44,7 +50,6 @@ if (isset($_POST['create'])) {
     echo "<script>alert('Patient created successfully!'); window.location='profile.php?id=$newId';</script>";
     exit;
 }
-
 ?>
 
 <!-- ===============================================-->
@@ -56,9 +61,8 @@ if (isset($_POST['create'])) {
     <script>
       var isFluid = JSON.parse(localStorage.getItem('isFluid'));
       if (isFluid) {
-        var container = document.querySelector('[data-layout]');
-        container.classList.remove('container');
-        container.classList.add('container-fluid');
+        document.querySelector('[data-layout]').classList.remove('container');
+        document.querySelector('[data-layout]').classList.add('container-fluid');
       }
     </script>
 
@@ -95,30 +99,11 @@ if (isset($_POST['create'])) {
 
             <div class="row">
 
-              <div class="col-md-4 mb-3">
-                <label>Date of Birth</label>
-                <input type="date" name="birth_date" class="form-control">
-              </div>
-
-              <div class="col-md-4 mb-3">
-                <label>Gender</label>
-                <select name="gender" class="form-control">
-                  <option value="">-- Select --</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
-              </div>
-
-              <div class="col-md-4 mb-3">
+              <div class="col-md-6 mb-3">
                 <label>Phone Number</label>
                 <input type="text" name="phone_number" class="form-control">
               </div>
 
-            </div>
-
-            <div class="mb-3">
-              <label>Address</label>
-              <textarea name="address" class="form-control"></textarea>
             </div>
 
             <div class="mt-3">
