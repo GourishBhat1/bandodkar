@@ -52,9 +52,12 @@ if (isset($_POST['delete_prescription'])) {
 }
 ?>
 
-<!-- Lightbox Gallery -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+<!-- LightGallery CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/css/lightgallery.min.css" />
+
+<!-- Plugins -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/plugins/thumbnail/lg-thumbnail.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/plugins/zoom/lg-zoom.min.css" />
 
 <main class="main" id="top">
   <div class="container" data-layout="container">
@@ -78,7 +81,9 @@ if (isset($_POST['delete_prescription'])) {
         </div>
 
         <div class="card-body">
-          <div class="row g-3">
+
+          <!-- Gallery container -->
+          <div id="galleryContainer" class="row g-3">
 
             <?php
             $q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
@@ -92,21 +97,33 @@ if (isset($_POST['delete_prescription'])) {
 
             while ($p = $result->fetch_assoc()) {
                 $img = $p['image_path'];
+
                 echo '
                 <div class="col-6 col-md-3 col-lg-2">
-                    <a href="'.$img.'" data-lightbox="prescriptions">
-                        <img src="'.$img.'" class="img-fluid rounded shadow-sm" style="height:140px; object-fit:cover;">
+
+                    <!-- Gallery image -->
+                    <a href="'.$img.'" 
+                       class="gallery-item"
+                       data-src="'.$img.'"
+                       data-lg-size="1200-800">
+
+                        <img src="'.$img.'" 
+                             class="img-fluid rounded shadow-sm" 
+                             style="height:140px; object-fit:cover;">
                     </a>
 
+                    <!-- Delete Button -->
                     <form method="POST" class="mt-1"
                         onsubmit="return confirm(\'Delete this prescription?\');">
                         <input type="hidden" name="delete_prescription_id" value="'.$p['prescription_id'].'">
                         <button class="btn btn-danger btn-sm w-100">Delete</button>
                     </form>
+
                 </div>';
             }
             ?>
           </div>
+
         </div>
       </div>
 
@@ -114,6 +131,32 @@ if (isset($_POST['delete_prescription'])) {
     </div>
   </div>
 </main>
+
+<!-- LightGallery JS -->
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/lightgallery.umd.min.js"></script>
+
+<!-- Plugins -->
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/plugins/thumbnail/lg-thumbnail.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/plugins/zoom/lg-zoom.umd.min.js"></script>
+
+<script>
+// Initialize LightGallery
+document.addEventListener("DOMContentLoaded", function () {
+    lightGallery(document.getElementById('galleryContainer'), {
+        selector: '.gallery-item',
+        plugins: [lgThumbnail, lgZoom],
+        speed: 350,
+        download: false,
+        closable: true,
+        backdropDuration: 200,
+        mobileSettings: {
+            controls: true,
+            showCloseIcon: true,
+            download: false
+        }
+    });
+});
+</script>
 
 </body>
 </html>
