@@ -209,6 +209,8 @@ async function fetchPatients() {
     const res = await fetch(`get-patients.php?q=${q}&sort=${sort}`);
     const data = await res.json();
 
+    console.log(data);
+
     loading.style.display = 'none';
 
     if (!data.length) {

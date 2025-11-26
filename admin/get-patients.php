@@ -1,6 +1,9 @@
 <?php
 // get-patients.php
-header('Content-Type: application/json; charset=utf-8');
+header("Content-Type: application/json; charset=utf-8");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
 include('connection.php');
 
@@ -43,7 +46,7 @@ if ($q !== '') {
 }
 
 // limit optional (for paging later)
-$limit = 100;
+$limit = 10000;
 
 // build sql
 $sql = "SELECT patient_id, first_name, last_name, phone_number, created_at FROM patients {$whereSql} ORDER BY {$orderBy} LIMIT ?";
