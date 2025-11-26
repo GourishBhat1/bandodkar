@@ -9,12 +9,12 @@
 <!-- ===============================================-->
 <!--    Document Title-->
 <!-- ===============================================-->
-<title>Bandodkar Clinic | Patient Management System</title>
+<title>Rec Vault | Patient Management System</title>
 
 <!-- Meta description & keywords (optional but recommended) -->
-<meta name="description" content="Bandodkar Clinic Patient Management System – Manage patients, prescriptions, and medical records efficiently.">
-<meta name="keywords" content="Bandodkar Clinic, patient management, prescriptions, medical records, healthcare software">
-<meta name="author" content="Bandodkar Clinic">
+<meta name="description" content="Rec Vault Patient Management System – Manage patients, prescriptions, and medical records efficiently.">
+<meta name="keywords" content="Rec Vault, patient management, prescriptions, medical records, healthcare software">
+<meta name="author" content="Rec Vault">
 <!-- ===============================================-->
 <!--    PWA Setup -->
 <!-- ===============================================-->

@@ -3,9 +3,9 @@
     
     <div class="col-12 col-sm-auto text-center">
       <p class="mb-0 text-600">
-        Bandodkar Clinic Patient Management System
+        Rec Vault Patient Management System
         <span class="d-none d-sm-inline-block"> | </span><br class="d-sm-none" />
-        © <?php echo date('Y'); ?> Bandodkar Clinic. All rights reserved.
+        © <?php echo date('Y'); ?> Rec Vault. All rights reserved.
       </p>
     </div>
 
