@@ -69,8 +69,8 @@ if (isset($_POST['submit'])) {
                   <div class="bg-holder bg-auth-card-shape" style="background-image:url(assets/img/icons/spot-illustrations/half-circle.png);"></div>
 
                   <div class="z-index-1 position-relative">
-                    <a class="link-light mb-4 font-sans-serif fs-4 d-inline-block fw-bolder" href="javascript:void()">Bandodkar Clinic</a>
-                    <p class="opacity-75 text-white">Bandodkar Clinic — where patient care stays first.</p>
+                    <a class="link-light mb-4 font-sans-serif fs-4 d-inline-block fw-bolder" href="javascript:void()">Rec Vault</a>
+                    <p class="opacity-75 text-white">Rec Vault — where patient care stays first.</p>
                   </div>
                 </div>
               </div>
