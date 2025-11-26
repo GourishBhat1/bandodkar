@@ -7,12 +7,11 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
     exit();
 }
 
-
 // ------------------------------------
 // Validate patient_id
 // ------------------------------------
 if (!isset($_GET['patient_id'])) {
-    echo "<script>alert('Invalid patient!'); window.location='index.php';</script>";
+    echo "<script>alert('Invalid patient!'); window.location='dashboard.php';</script>";
     exit;
 }
 
@@ -24,8 +23,8 @@ $patient_id = intval($_GET['patient_id']);
 if (isset($_POST['add'])) {
 
     $doctor_name = "Dr. Bandodkar"; 
-    $date_prescribed = $_POST['date_prescribed'];
-    $description = $_POST['description_html']; // Quill output (hidden input)
+    $date_prescribed = date("Y-m-d"); // AUTO DATE
+    $description = ""; // EMPTY — removed feature
 
     // ------------------------------
     // Handle image upload
@@ -46,7 +45,8 @@ if (isset($_POST['add'])) {
     // Insert into DB
     // ------------------------------
     $stmt = $conn->prepare("
-        INSERT INTO prescriptions (patient_id, doctor_name, date_prescribed, description, image_path, created_at, updated_at)
+        INSERT INTO prescriptions 
+        (patient_id, doctor_name, date_prescribed, description, image_path, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, NOW(), NOW())
     ");
 
@@ -73,9 +73,8 @@ if (isset($_POST['add'])) {
     <script>
       var isFluid = JSON.parse(localStorage.getItem('isFluid'));
       if (isFluid) {
-        var container = document.querySelector('[data-layout]');
-        container.classList.remove('container');
-        container.classList.add('container-fluid');
+        document.querySelector('[data-layout]').classList.remove('container');
+        document.querySelector('[data-layout]').classList.add('container-fluid');
       }
     </script>
 
@@ -85,9 +84,6 @@ if (isset($_POST['add'])) {
 
       <?php include('includes/navbar.php'); ?>
 
-      <!-- ===============================================-->
-      <!-- ADD PRESCRIPTION FORM -->
-      <!-- ===============================================-->
       <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Add Prescription</h5>
@@ -96,31 +92,20 @@ if (isset($_POST['add'])) {
 
         <div class="card-body">
 
-          <form method="POST" enctype="multipart/form-data" onsubmit="return submitDescription();">
-
-            <div class="row mb-3">
-              <div class="col-md-4">
-                <label>Date Prescribed</label>
-                <input type="date" name="date_prescribed" class="form-control" required>
-              </div>
-
-              <div class="col-md-8">
-                <label>Prescription Image *</label>
-                <input type="file" name="image" accept="image/*" required class="form-control">
-              </div>
-            </div>
+          <form method="POST" enctype="multipart/form-data">
 
             <div class="mb-3">
-              <label>Description</label>
+  <label>Prescription Image *</label>
+  <input 
+      type="file" 
+      name="image" 
+      accept="image/*" 
+      capture="environment" 
+      required 
+      class="form-control">
+</div>
 
-              <!-- Quill Editor -->
-              <div id="quill-editor" style="height: 250px; background: white;"></div>
-
-              <!-- Hidden input to store Quill HTML -->
-              <input type="hidden" name="description_html" id="description_html">
-            </div>
-
-            <button type="submit" name="add" class="btn btn-success">Add Prescription</button>
+            <button type="submit" name="add" class="btn btn-success">Upload Prescription</button>
 
           </form>
 
@@ -132,33 +117,6 @@ if (isset($_POST['add'])) {
     </div>
   </div>
 </main>
-
-
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
-<script>
-  // Initialize Quill Editor
-  var quill = new Quill('#quill-editor', {
-    theme: 'snow',
-    placeholder: 'Write prescription details here...',
-    modules: {
-      toolbar: [
-        [{ header: [1, 2, false] }],
-        ['bold', 'italic', 'underline'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        ['link'],
-      ]
-    }
-  });
-
-  // Transfer Quill HTML to hidden input before submit
-  function submitDescription() {
-    var html = quill.root.innerHTML;
-    document.getElementById('description_html').value = html;
-    return true;
-  }
-</script>
 
 </body>
 </html>
