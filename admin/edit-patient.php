@@ -43,7 +43,7 @@ if (isset($_POST['update'])) {
     $stmt->execute();
     $stmt->close();
 
-    echo "<script>alert('Updated successfully'); window.location='profile.php?id=$patient_id';</script>";
+    echo "<script>alert('Updated successfully'); window.location='dashboard.php';</script>";
     exit;
 }
 ?>
