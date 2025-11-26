@@ -33,14 +33,13 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
           <!-- SORT -->
           <div class="mb-2">
             <select id="sortSelect" class="form-select">
-              <option value="id_desc">Sort: Newest first</option>
-              <option value="id_asc">Sort: Oldest first</option>
-              <option value="name_asc">Sort: Name A → Z</option>
-              <option value="name_desc">Sort: Name Z → A</option>
+              <option value="id_desc">Newest First (ID ↓)</option>
+              <option value="id_asc">Oldest First (ID ↑)</option>
+              <option value="name_asc">Name A → Z</option>
+              <option value="name_desc">Name Z → A</option>
             </select>
           </div>
 
-          <small class="text-600">Tap a card to open profile</small>
         </div>
 
         <div class="card-body">
@@ -206,26 +205,42 @@ async function fetchPatients() {
   const sort = encodeURIComponent(sortSelect.value);
 
   try {
-    const res = await fetch(`get-patients.php?q=${q}&sort=${sort}`);
-    const data = await res.json();
+    // Prevent browser caching
+    const res = await fetch(`get-patients.php?q=${q}&sort=${sort}&_=${Date.now()}`, {
+      cache: "no-store"
+    });
 
-    console.log(data);
+    if (res.status === 401) {
+      // cookie expired → force logout
+      window.location = "logout.php";
+      return;
+    }
+
+    if (!res.ok) {
+      throw new Error("Network error");
+    }
+
+    const data = await res.json();
+    console.log("Patients:", data);
 
     loading.style.display = 'none';
 
-    if (!data.length) {
+    if (!Array.isArray(data) || data.length === 0) {
       noResults.style.display = 'block';
       return;
     }
 
+    // PHP already sorts based on dropdown
     cardsContainer.innerHTML = data.map(buildCard).join('');
 
   } catch (err) {
+    console.error("Fetch error:", err);
     loading.style.display = 'none';
     noResults.style.display = 'block';
     noResults.innerHTML = `<p class="text-danger">Unable to load patients.</p>`;
   }
 }
+
 
 function deletePatient(id) {
   if (!confirm("Are you sure you want to delete this patient? This cannot be undone.")) return;
@@ -250,7 +265,7 @@ searchInput.addEventListener('input', () => {
 
 sortSelect.addEventListener('change', fetchPatients);
 
-window.addEventListener('load', fetchPatients);
+window.addEventListener('load', () => fetchPatients(Date.now()));
 </script>
 
 </body>

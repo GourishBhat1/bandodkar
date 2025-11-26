@@ -19,6 +19,10 @@
 <!--    PWA Setup -->
 <!-- ===============================================-->
 
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+
 <link rel="manifest" href="/admin/manifest.json">
 <meta name="theme-color" content="#0066cc">
 
