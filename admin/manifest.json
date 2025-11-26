@@ -1,6 +1,6 @@
 {
-  "name": "Bandodkar Clinic PMS",
-  "short_name": "Clinic PMS",
+  "name": "Rec Vault Clinic PMS",
+  "short_name": "Rec Vault",
   "start_url": "index.php",
   "display": "standalone",
   "background_color": "#f8f9fa",

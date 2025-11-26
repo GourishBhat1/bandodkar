@@ -15,7 +15,7 @@
   <a class="navbar-brand me-1 me-sm-3" href="index.php">
     <div class="d-flex align-items-center">
       <!-- <img class="me-2" src="assets/img/icons/clinic-logo.png" alt="" width="38" /> -->
-      <span class="font-sans-serif fw-bold">Clinic PMS</span>
+      <span class="font-sans-serif fw-bold">Rec Vault</span>
     </div>
   </a>
 
