@@ -64,7 +64,7 @@
   --falcon-body-font-weight: 400;
   --falcon-body-line-height: 1.5;
   --falcon-body-color: #5e6e82;
-  --falcon-body-bg: #edf2f9;
+  --falcon-body-bg: #f8f9fa;
 }
 
 :root, :root.light, :root .light {
