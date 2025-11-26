@@ -229,10 +229,14 @@ function deletePatient(id) {
   if (!confirm("Are you sure you want to delete this patient? This cannot be undone.")) return;
 
   fetch("delete-patient.php?id=" + id)
-    .then(res => res.text())
-    .then(msg => {
-      alert(msg);
-      fetchPatients();
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        alert("Patient deleted successfully");
+        fetchPatients();
+      } else {
+        alert("Error: " + data.message);
+      }
     })
     .catch(() => alert("Error deleting patient."));
 }

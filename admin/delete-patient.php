@@ -1,34 +1,50 @@
 <?php
+header('Content-Type: application/json');
 include('connection.php');
 
-if (!isset($_GET['id'])) {
-    echo "Invalid request";
+// Validate ID
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+    echo json_encode(["status" => "error", "message" => "Invalid request"]);
     exit;
 }
 
 $patient_id = intval($_GET['id']);
 
-// Delete prescriptions + images
-$pres = $conn->prepare("SELECT image_path FROM prescriptions WHERE patient_id=?");
-$pres->bind_param("i", $patient_id);
-$pres->execute();
-$result = $pres->get_result();
 
-while ($p = $result->fetch_assoc()) {
-    if (file_exists($p['image_path'])) {
-        unlink($p['image_path']);
+// ------------------------------------------
+// 1. Fetch prescription images
+// ------------------------------------------
+$get = $conn->prepare("SELECT image_path FROM prescriptions WHERE patient_id=?");
+$get->bind_param("i", $patient_id);
+$get->execute();
+$result = $get->get_result();
+
+while ($row = $result->fetch_assoc()) {
+    $path = $row['image_path'];
+    if (!empty($path) && file_exists($path)) {
+        @unlink($path); // @ suppresses warnings
     }
 }
-$pres->close();
+$get->close();
 
-// Delete prescriptions
-$conn->query("DELETE FROM prescriptions WHERE patient_id=$patient_id");
 
-// Delete patient
-$stmt = $conn->prepare("DELETE FROM patients WHERE patient_id=?");
-$stmt->bind_param("i", $patient_id);
-$stmt->execute();
-$stmt->close();
+// ------------------------------------------
+// 2. Delete prescriptions
+// ------------------------------------------
+$delPres = $conn->prepare("DELETE FROM prescriptions WHERE patient_id=?");
+$delPres->bind_param("i", $patient_id);
+$delPres->execute();
+$delPres->close();
 
-echo "Patient deleted successfully";
+
+// ------------------------------------------
+// 3. Delete patient
+// ------------------------------------------
+$delPat = $conn->prepare("DELETE FROM patients WHERE patient_id=?");
+$delPat->bind_param("i", $patient_id);
+$delPat->execute();
+$delPat->close();
+
+echo json_encode(["status" => "success", "message" => "Patient deleted"]);
+exit;
 ?>
