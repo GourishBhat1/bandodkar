@@ -1,4 +1,8 @@
 <?php
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 include('includes/header.php');
 include('connection.php');
 
@@ -139,7 +143,7 @@ if (isset($_POST['delete_selected'])) {
                 $img = $p['image_path'];
 
                 echo '
-                <div class="col-6 col-md-3 col-lg-2 position-relative">
+                <div class="col-12 col-md-12 col-lg-2 position-relative">
 
                     <!-- Checkbox -->
                     <input type="checkbox" 
