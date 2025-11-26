@@ -63,7 +63,7 @@ if (isset($_POST['update'])) {
       <div class="card mb-4 shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Edit Patient</h4>
-          <a href="profile.php?id=<?php echo $patient_id; ?>" class="btn btn-sm btn-secondary">Back</a>
+          <a href="dashboard.php" class="btn btn-sm btn-secondary">Back</a>
         </div>
 
         <div class="card-body">
