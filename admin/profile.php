@@ -31,7 +31,39 @@ if (!$patient) {
     exit;
 }
 
-// Delete selected prescriptions
+
+/* ------------------------------------------------------------------
+    AUTO UPLOAD IMAGE FROM FLOATING BUTTON
+------------------------------------------------------------------ */
+if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
+
+    $target_dir = "uploads/prescriptions/";
+    if (!is_dir($target_dir)) {
+        mkdir($target_dir, 0777, true);
+    }
+
+    $image_name = time() . "_" . basename($_FILES["image"]["name"]);
+    $target_file = $target_dir . $image_name;
+
+    move_uploaded_file($_FILES["image"]["tmp_name"], $target_file);
+
+    $stmt = $conn->prepare("
+        INSERT INTO prescriptions 
+        (patient_id, doctor_name, date_prescribed, description, image_path, created_at, updated_at)
+        VALUES (?, 'Dr. Bandodkar', CURDATE(), '', ?, NOW(), NOW())
+    ");
+
+    $stmt->bind_param("is", $patient_id, $target_file);
+    $stmt->execute();
+    $stmt->close();
+
+    exit; // AJAX upload done
+}
+
+
+/* ------------------------------------------------------------------
+    DELETE SELECTED PRESCRIPTIONS
+------------------------------------------------------------------ */
 if (isset($_POST['delete_selected'])) {
 
     if (!empty($_POST['prescription_ids'])) {
@@ -60,14 +92,15 @@ if (isset($_POST['delete_selected'])) {
     echo "<script>alert('Selected prescriptions deleted successfully'); window.location='profile.php?id=$patient_id';</script>";
     exit;
 }
+
 ?>
 
 <!-- GLightbox CSS -->
 <link href="vendors/glightbox/glightbox.min.css" rel="stylesheet">
 
 <style>
-/* Floating Add Button */
-.fab-add {
+/* Floating Upload Button */
+.fab-upload {
     position: fixed;
     bottom: 25px;
     right: 25px;
@@ -82,17 +115,17 @@ if (isset($_POST['delete_selected'])) {
     justify-content: center;
     font-size: 28px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-    text-decoration: none;
+    cursor: pointer;
 }
-.fab-add:hover {
+.fab-upload:hover {
     background: #157347;
 }
 
-/* Delete bar (hidden initially) */
+/* Floating Delete Bar */
 #deleteBar {
     display: none;
     position: fixed;
-    bottom: 100px;
+    bottom: 105px;
     right: 20px;
     z-index: 900;
 }
@@ -120,7 +153,7 @@ if (isset($_POST['delete_selected'])) {
       <div class="card mb-5">
         <div class="card-header d-flex justify-content-start align-items-center">
           
-          <!-- BACK BUTTON ONLY -->
+          <!-- BACK BUTTON -->
           <a href="dashboard.php" class="btn btn-secondary btn-sm">Back</a>
 
         </div>
@@ -143,7 +176,7 @@ if (isset($_POST['delete_selected'])) {
                 $img = $p['image_path'];
 
                 echo '
-                <div class="col-12 col-md-12 col-lg-2 position-relative">
+                <div class="col-6 col-md-3 col-lg-2 position-relative">
 
                     <!-- Checkbox -->
                     <input type="checkbox" 
@@ -153,7 +186,7 @@ if (isset($_POST['delete_selected'])) {
                         value="'.$p['prescription_id'].'"
                         onchange="toggleDeleteBar()">
 
-                    <!-- GLightbox Trigger -->
+                    <!-- GLightbox -->
                     <a href="'.$img.'" class="glightbox" data-gallery="prescriptions">
                         <img src="'.$img.'" class="img-fluid rounded shadow-sm" 
                         style="height:150px; object-fit:cover; width:100%;">
@@ -179,10 +212,13 @@ if (isset($_POST['delete_selected'])) {
   </div>
 </main>
 
-<!-- FLOATING ADD BUTTON -->
-<a href="add-prescription.php?patient_id=<?php echo $patient_id; ?>" class="fab-add">
-  <i class="fas fa-plus"></i>
-</a>
+<!-- Floating Camera/Gallery Upload Button -->
+<label for="uploadPrescription" class="fab-upload">
+  <i class="fas fa-camera"></i>
+</label>
+
+<input type="file" id="uploadPrescription" accept="image/*" capture="environment"
+       style="display:none;" onchange="autoUpload()">
 
 <!-- GLightbox JS -->
 <script src="vendors/glightbox/glightbox.min.js"></script>
@@ -190,6 +226,7 @@ if (isset($_POST['delete_selected'])) {
 <script>
 let lightbox;
 
+// Refresh GLightbox when page loads
 function refreshLightbox() {
     if (lightbox) {
         try { lightbox.destroy(); } catch(e) {}
@@ -203,14 +240,30 @@ function refreshLightbox() {
     });
 }
 
-// Show floating delete bar only if some checkbox is selected
+// Auto-upload image selected from floating button
+function autoUpload() {
+    const fileInput = document.getElementById("uploadPrescription");
+    if (!fileInput.files.length) return;
+
+    const form = new FormData();
+    form.append("auto_upload", "1");
+    form.append("image", fileInput.files[0]);
+
+    fetch("profile.php?id=<?php echo $patient_id; ?>", {
+        method: "POST",
+        body: form
+    })
+    .then(() => location.reload())
+    .catch(() => alert("Upload failed"));
+}
+
+// Show delete button only if checkboxes selected
 function toggleDeleteBar() {
     const checked = document.querySelectorAll('.select-box:checked').length;
     document.getElementById("deleteBar").style.display = checked ? "block" : "none";
 }
 
-// Reinitialize GLightbox once DOM is ready
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
     setTimeout(refreshLightbox, 150);
 });
 </script>
