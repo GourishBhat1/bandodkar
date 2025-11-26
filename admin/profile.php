@@ -59,6 +59,32 @@ if (isset($_POST['delete_prescription'])) {
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/plugins/thumbnail/lg-thumbnail.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/plugins/zoom/lg-zoom.min.css" />
 
+<style>
+/* Fix LightGallery overlay clipping */
+.lg-backdrop,
+.lg-outer {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100vh !important;
+    width: 100vw !important;
+    z-index: 99999 !important;
+}
+
+/* Disable scrolling behind gallery */
+html.lg-on,
+body.lg-on {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
+
+/* Falcon layout fix */
+html.lg-on .content {
+    overflow: hidden !important;
+}
+</style>
+
+
 <main class="main" id="top">
   <div class="container" data-layout="container">
 
