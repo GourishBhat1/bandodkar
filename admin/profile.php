@@ -55,6 +55,30 @@ if (isset($_POST['delete_prescription'])) {
 <!-- GLightbox CSS -->
 <link href="vendors/glightbox/glightbox.min.css" rel="stylesheet">
 
+<style>
+/* Floating Add Button */
+.fab-add {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 999;
+    background: #198754;
+    color: white;
+    border-radius: 50%;
+    width: 62px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    text-decoration: none;
+}
+.fab-add:hover {
+    background: #157347;
+}
+</style>
+
 <main class="main" id="top">
   <div class="container" data-layout="container">
 
@@ -65,15 +89,11 @@ if (isset($_POST['delete_prescription'])) {
 
       <!-- Prescription Gallery -->
       <div class="card mb-5">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Prescription Images</h5>
+        <div class="card-header d-flex justify-content-start align-items-center">
+          
+          <!-- BACK BUTTON ONLY -->
+          <a href="dashboard.php" class="btn btn-secondary btn-sm">Back</a>
 
-          <div>
-            <a href="dashboard.php" class="btn btn-secondary btn-sm me-2">Back</a>
-            <a href="add-prescription.php?patient_id=<?php echo $patient_id; ?>" class="btn btn-success btn-sm">
-              + Add
-            </a>
-          </div>
         </div>
 
         <div class="card-body">
@@ -117,6 +137,11 @@ if (isset($_POST['delete_prescription'])) {
     </div>
   </div>
 </main>
+
+<!-- FLOATING ADD BUTTON -->
+<a href="add-prescription.php?patient_id=<?php echo $patient_id; ?>" class="fab-add">
+  <i class="fas fa-plus"></i>
+</a>
 
 <!-- GLightbox JS -->
 <script src="vendors/glightbox/glightbox.min.js"></script>
