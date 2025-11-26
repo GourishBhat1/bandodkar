@@ -182,13 +182,9 @@ function buildCard(patient) {
           <div class="patient-meta mb-2">
             <small class="d-block"><strong>ID:</strong> ${id}</small>
             <small class="d-block"><strong>Phone:</strong> ${phone}</small>
-            <small class="d-block text-muted"><strong>Created:</strong> ${created}</small>
           </div>
 
-          <a href="profile.php?id=${id}" onclick="event.stopPropagation();"
-             class="btn btn-sm btn-outline-primary">
-            View Profile
-          </a>
+          
 
         </div>
       </div>
