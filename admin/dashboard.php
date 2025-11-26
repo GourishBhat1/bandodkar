@@ -167,7 +167,7 @@ function buildCard(patient) {
 
           <button class="btn btn-link text-muted btn-sm dropdown-toggle dropdown-caret-none"
                   data-bs-toggle="dropdown" type="button">
-            <span class="fas fa-ellipsis-h"></span>
+            <span class="fas fa-ellipsis-v"></span>
           </button>
 
           <div class="dropdown-menu dropdown-menu-end shadow-sm">
