@@ -17,28 +17,44 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
     </script>
 
     <?php include('includes/sidebar.php'); ?>
-
     <div class="content">
       <?php include('includes/navbar.php');?>
 
       <div class="card mb-4">
         <div class="card-header">
 
-          <!-- SEARCH -->
-          <div class="mb-3">
-            <input id="searchInput" type="search" class="form-control"
-                   placeholder="Search by name, ID or phone...">
+          <!-- SEARCH + SORT BUTTON ROW -->
+          <div class="d-flex align-items-center">
+            
+            <!-- SEARCH -->
+            <input id="searchInput" type="search" 
+              class="form-control me-2"
+              placeholder="Search by name, ID or phone...">
+
+            <!-- SORT BUTTON -->
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary dropdown-toggle"
+                      type="button" id="sortBtn"
+                      data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-sort"></i>
+              </button>
+
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#" onclick="setSort('id_desc')">Newest First (ID ↓)</a></li>
+                <li><a class="dropdown-item" href="#" onclick="setSort('id_asc')">Oldest First (ID ↑)</a></li>
+                <li><a class="dropdown-item" href="#" onclick="setSort('name_asc')">Name A → Z</a></li>
+                <li><a class="dropdown-item" href="#" onclick="setSort('name_desc')">Name Z → A</a></li>
+              </ul>
+            </div>
           </div>
 
-          <!-- SORT -->
-          <div class="mb-2">
-            <select id="sortSelect" class="form-select">
-              <option value="id_desc">Newest First (ID ↓)</option>
-              <option value="id_asc">Oldest First (ID ↑)</option>
-              <option value="name_asc">Name A → Z</option>
-              <option value="name_desc">Name Z → A</option>
-            </select>
-          </div>
+          <!-- HIDDEN SELECT (kept for compatibility) -->
+          <select id="sortSelect" class="d-none">
+            <option value="id_desc">Newest First (ID ↓)</option>
+            <option value="id_asc">Oldest First (ID ↑)</option>
+            <option value="name_asc">Name A → Z</option>
+            <option value="name_desc">Name Z → A</option>
+          </select>
 
         </div>
 
@@ -77,20 +93,10 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
   color: #6c757d;
 }
 
-/* Three-dot dropdown button */
 .card-dots .btn {
   padding: 4px 6px;
   font-size: 14px;
   color: #6c757d;
-}
-
-.card-dots .dropdown-menu {
-  min-width: 160px;
-  font-size: 14px;
-}
-
-.dropdown-menu .dropdown-item i {
-  width: 18px;
 }
 
 /* Floating Create Button */
@@ -123,12 +129,18 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
 
 <script>
 const cardsContainer = document.getElementById('cardsContainer');
-const searchInput = document.getElementById('searchInput');
-const sortSelect   = document.getElementById('sortSelect');
-const noResults    = document.getElementById('noResults');
-const loading      = document.getElementById('loading');
+const searchInput   = document.getElementById('searchInput');
+const sortSelect    = document.getElementById('sortSelect');
+const noResults     = document.getElementById('noResults');
+const loading       = document.getElementById('loading');
 
 let debounceTimer = null;
+
+// Update hidden select + refresh
+function setSort(value) {
+  sortSelect.value = value;
+  fetchPatients();
+}
 
 function escapeHtml(unsafe) {
     if (!unsafe && unsafe !== 0) return '';
@@ -145,13 +157,11 @@ function buildCard(patient) {
   const displayName = escapeHtml(name || 'No Name');
   const phone = escapeHtml(patient.phone_number || '—');
   const id = patient.patient_id;
-  const created = patient.created_at ? escapeHtml(patient.created_at) : '—';
 
   return `
     <div class="col-12 col-sm-6 col-md-4 col-lg-3">
       <div class="card patient-card h-100" onclick="location.href='profile.php?id=${id}'">
 
-        <!-- THREE DOT DROPDOWN -->
         <div class="dropdown position-absolute top-0 end-0 p-2 card-dots"
              onclick="event.stopPropagation();">
 
@@ -161,7 +171,6 @@ function buildCard(patient) {
           </button>
 
           <div class="dropdown-menu dropdown-menu-end shadow-sm">
-
             <a class="dropdown-item" href="edit-patient.php?id=${id}">
               <i class="fas fa-edit text-primary me-2"></i> Edit
             </a>
@@ -170,22 +179,15 @@ function buildCard(patient) {
                     onclick="deletePatient(${id}); event.stopPropagation();">
               <i class="fas fa-trash me-2"></i> Delete
             </button>
-
           </div>
         </div>
 
-        <!-- MAIN CARD BODY -->
         <div class="card-body">
-
           <h6 class="mb-1">${displayName}</h6>
-
           <div class="patient-meta mb-2">
-            <small class="d-block"><strong>ID:</strong> ${id}</small>
-            <small class="d-block"><strong>Phone:</strong> ${phone}</small>
+            <small><strong>ID:</strong> ${id}</small><br>
+            <small><strong>Phone:</strong> ${phone}</small>
           </div>
-
-          
-
         </div>
       </div>
     </div>
@@ -198,26 +200,19 @@ async function fetchPatients() {
   cardsContainer.innerHTML = '';
 
   const q = encodeURIComponent(searchInput.value.trim());
-  const sort = encodeURIComponent(sortSelect.value);
+  const sort = sortSelect.value;
 
   try {
-    // Prevent browser caching
     const res = await fetch(`get-patients.php?q=${q}&sort=${sort}&_=${Date.now()}`, {
       cache: "no-store"
     });
 
     if (res.status === 401) {
-      // cookie expired → force logout
       window.location = "logout.php";
       return;
     }
 
-    if (!res.ok) {
-      throw new Error("Network error");
-    }
-
     const data = await res.json();
-    console.log("Patients:", data);
 
     loading.style.display = 'none';
 
@@ -226,20 +221,17 @@ async function fetchPatients() {
       return;
     }
 
-    // PHP already sorts based on dropdown
     cardsContainer.innerHTML = data.map(buildCard).join('');
 
   } catch (err) {
-    console.error("Fetch error:", err);
     loading.style.display = 'none';
     noResults.style.display = 'block';
     noResults.innerHTML = `<p class="text-danger">Unable to load patients.</p>`;
   }
 }
 
-
 function deletePatient(id) {
-  if (!confirm("Are you sure you want to delete this patient? This cannot be undone.")) return;
+  if (!confirm("Are you sure you want to delete this patient?")) return;
 
   fetch("delete-patient.php?id=" + id)
     .then(res => res.json())
@@ -259,9 +251,7 @@ searchInput.addEventListener('input', () => {
   debounceTimer = setTimeout(fetchPatients, 300);
 });
 
-sortSelect.addEventListener('change', fetchPatients);
-
-window.addEventListener('load', () => fetchPatients(Date.now()));
+window.addEventListener('load', fetchPatients);
 </script>
 
 </body>
