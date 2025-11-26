@@ -52,38 +52,8 @@ if (isset($_POST['delete_prescription'])) {
 }
 ?>
 
-<!-- LightGallery CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/css/lightgallery.min.css" />
-
-<!-- Plugins -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/plugins/thumbnail/lg-thumbnail.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/plugins/zoom/lg-zoom.min.css" />
-
-<style>
-/* Fix LightGallery overlay clipping */
-.lg-backdrop,
-.lg-outer {
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    height: 100vh !important;
-    width: 100vw !important;
-    z-index: 99999 !important;
-}
-
-/* Disable scrolling behind gallery */
-html.lg-on,
-body.lg-on {
-    overflow: hidden !important;
-    height: 100vh !important;
-}
-
-/* Falcon layout fix */
-html.lg-on .content {
-    overflow: hidden !important;
-}
-</style>
-
+<!-- GLightbox CSS -->
+<link href="vendors/glightbox/glightbox.min.css" rel="stylesheet">
 
 <main class="main" id="top">
   <div class="container" data-layout="container">
@@ -93,7 +63,7 @@ html.lg-on .content {
 
       <?php include('includes/navbar.php'); ?>
 
-      <!-- Prescriptions Gallery -->
+      <!-- Prescription Gallery -->
       <div class="card mb-5">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Prescription Images</h5>
@@ -107,9 +77,7 @@ html.lg-on .content {
         </div>
 
         <div class="card-body">
-
-          <!-- Gallery container -->
-          <div id="galleryContainer" class="row g-3">
+          <div class="row g-3">
 
             <?php
             $q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
@@ -123,22 +91,15 @@ html.lg-on .content {
 
             while ($p = $result->fetch_assoc()) {
                 $img = $p['image_path'];
-
                 echo '
                 <div class="col-6 col-md-3 col-lg-2">
 
-                    <!-- Gallery image -->
-                    <a href="'.$img.'" 
-                       class="gallery-item"
-                       data-src="'.$img.'"
-                       data-lg-size="1200-800">
-
-                        <img src="'.$img.'" 
-                             class="img-fluid rounded shadow-sm" 
-                             style="height:140px; object-fit:cover;">
+                    <!-- GLightbox Trigger -->
+                    <a href="'.$img.'" class="glightbox" data-gallery="prescriptions">
+                        <img src="'.$img.'" class="img-fluid rounded shadow-sm" 
+                        style="height:150px; object-fit:cover; width:100%;">
                     </a>
 
-                    <!-- Delete Button -->
                     <form method="POST" class="mt-1"
                         onsubmit="return confirm(\'Delete this prescription?\');">
                         <input type="hidden" name="delete_prescription_id" value="'.$p['prescription_id'].'">
@@ -149,7 +110,6 @@ html.lg-on .content {
             }
             ?>
           </div>
-
         </div>
       </div>
 
@@ -158,30 +118,17 @@ html.lg-on .content {
   </div>
 </main>
 
-<!-- LightGallery JS -->
-<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/lightgallery.umd.min.js"></script>
-
-<!-- Plugins -->
-<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/plugins/thumbnail/lg-thumbnail.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/plugins/zoom/lg-zoom.umd.min.js"></script>
+<!-- GLightbox JS -->
+<script src="vendors/glightbox/glightbox.min.js"></script>
 
 <script>
-// Initialize LightGallery
-document.addEventListener("DOMContentLoaded", function () {
-    lightGallery(document.getElementById('galleryContainer'), {
-        selector: '.gallery-item',
-        plugins: [lgThumbnail, lgZoom],
-        speed: 350,
-        download: false,
-        closable: true,
-        backdropDuration: 200,
-        mobileSettings: {
-            controls: true,
-            showCloseIcon: true,
-            download: false
-        }
-    });
-});
+  // Initialize GLightbox
+  const lightbox = GLightbox({
+      selector: '.glightbox',
+      touchNavigation: true,
+      loop: true,
+      zoomable: true,
+  });
 </script>
 
 </body>
