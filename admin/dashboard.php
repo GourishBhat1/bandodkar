@@ -24,12 +24,13 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
       <div class="card mb-4">
         <div class="card-header">
 
-          <!-- FULL-WIDTH SEARCH -->
+          <!-- SEARCH -->
           <div class="mb-3">
-            <input id="searchInput" type="search" class="form-control" placeholder="Search by name, ID or phone...">
+            <input id="searchInput" type="search" class="form-control"
+                   placeholder="Search by name, ID or phone...">
           </div>
 
-          <!-- SORT DROPDOWN BELOW SEARCH -->
+          <!-- SORT -->
           <div class="mb-2">
             <select id="sortSelect" class="form-select">
               <option value="id_desc">Sort: Newest first</option>
@@ -43,17 +44,14 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
         </div>
 
         <div class="card-body">
-          <!-- Cards injected here -->
           <div id="cardsContainer" class="row g-3"></div>
 
-          <!-- No results -->
           <div id="noResults" class="text-center text-muted py-4" style="display:none;">
             <p class="mb-0">No patients found.</p>
           </div>
 
-          <!-- Loading spinner -->
           <div id="loading" class="text-center py-4" style="display:none;">
-            <div class="spinner-border" role="status"></div>
+            <div class="spinner-border"></div>
             <div class="mt-2">Loading...</div>
           </div>
         </div>
@@ -66,25 +64,37 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
 
 <!-- CARD UI -->
 <style>
-.card-patient {
+.patient-card {
   transition: transform .08s ease, box-shadow .08s ease;
   cursor: pointer;
+  position: relative;
 }
-.card-patient:hover {
+.patient-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-}
-
-/* Remove avatar → adjust padding */
-.card-patient .no-avatar-space {
-  padding-left: 0 !important;
 }
 
 .patient-meta small {
   color: #6c757d;
 }
 
-/* Floating Create Button (FAB) */
+/* Three-dot dropdown button */
+.card-dots .btn {
+  padding: 4px 6px;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.card-dots .dropdown-menu {
+  min-width: 160px;
+  font-size: 14px;
+}
+
+.dropdown-menu .dropdown-item i {
+  width: 18px;
+}
+
+/* Floating Create Button */
 .fab-create {
   position: fixed;
   bottom: 25px;
@@ -98,13 +108,12 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
   font-size: 28px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
   text-decoration: none;
 }
 .fab-create:hover {
   background: #0b5ed7;
-  color: #fff;
 }
 </style>
 
@@ -113,7 +122,6 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
   <i class="fas fa-plus"></i>
 </a>
 
-<!-- AJAX SEARCH + SORT -->
 <script>
 const cardsContainer = document.getElementById('cardsContainer');
 const searchInput = document.getElementById('searchInput');
@@ -135,28 +143,53 @@ function escapeHtml(unsafe) {
 
 function buildCard(patient) {
   const name = (patient.first_name || '') + (patient.last_name ? ' ' + patient.last_name : '');
-  const sanitizedName = escapeHtml(name || 'No Name');
-
-  const phone = patient.phone_number || '—';
+  const displayName = escapeHtml(name || 'No Name');
+  const phone = escapeHtml(patient.phone_number || '—');
   const id = patient.patient_id;
   const created = patient.created_at ? escapeHtml(patient.created_at) : '—';
 
   return `
     <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-      <div class="card card-patient h-100 no-avatar-space" onclick="location.href='profile.php?id=${id}'">
+      <div class="card patient-card h-100" onclick="location.href='profile.php?id=${id}'">
+
+        <!-- THREE DOT DROPDOWN -->
+        <div class="dropdown position-absolute top-0 end-0 p-2 card-dots"
+             onclick="event.stopPropagation();">
+
+          <button class="btn btn-link text-muted btn-sm dropdown-toggle dropdown-caret-none"
+                  data-bs-toggle="dropdown" type="button">
+            <span class="fas fa-ellipsis-h"></span>
+          </button>
+
+          <div class="dropdown-menu dropdown-menu-end shadow-sm">
+
+            <a class="dropdown-item" href="edit-patient.php?id=${id}">
+              <i class="fas fa-edit text-primary me-2"></i> Edit
+            </a>
+
+            <button class="dropdown-item text-danger"
+                    onclick="deletePatient(${id}); event.stopPropagation();">
+              <i class="fas fa-trash me-2"></i> Delete
+            </button>
+
+          </div>
+        </div>
+
+        <!-- MAIN CARD BODY -->
         <div class="card-body">
 
-          <h6 class="mb-1">${sanitizedName}</h6>
+          <h6 class="mb-1">${displayName}</h6>
 
           <div class="patient-meta mb-2">
             <small class="d-block"><strong>ID:</strong> ${id}</small>
-            <small class="d-block"><strong>Phone:</strong> ${escapeHtml(phone)}</small>
+            <small class="d-block"><strong>Phone:</strong> ${phone}</small>
+            <small class="d-block text-muted"><strong>Created:</strong> ${created}</small>
           </div>
 
-          <div class="d-flex justify-content-between align-items-center">
-            <a href="profile.php?id=${id}" class="btn btn-sm btn-outline-primary">View Profile</a>
-            <small class="text-muted">${created}</small>
-          </div>
+          <a href="profile.php?id=${id}" onclick="event.stopPropagation();"
+             class="btn btn-sm btn-outline-primary">
+            View Profile
+          </a>
 
         </div>
       </div>
@@ -174,9 +207,8 @@ async function fetchPatients() {
 
   try {
     const res = await fetch(`get-patients.php?q=${q}&sort=${sort}`);
-    if (!res.ok) throw new Error();
-
     const data = await res.json();
+
     loading.style.display = 'none';
 
     if (!data.length) {
@@ -191,6 +223,18 @@ async function fetchPatients() {
     noResults.style.display = 'block';
     noResults.innerHTML = `<p class="text-danger">Unable to load patients.</p>`;
   }
+}
+
+function deletePatient(id) {
+  if (!confirm("Are you sure you want to delete this patient? This cannot be undone.")) return;
+
+  fetch("delete-patient.php?id=" + id)
+    .then(res => res.text())
+    .then(msg => {
+      alert(msg);
+      fetchPatients();
+    })
+    .catch(() => alert("Error deleting patient."));
 }
 
 searchInput.addEventListener('input', () => {
