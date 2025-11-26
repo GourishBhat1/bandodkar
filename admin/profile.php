@@ -28,34 +28,34 @@ if (!$patient) {
 }
 
 // Delete selected prescriptions
-if (isset($_POST['delete_selected']) && isset($_POST['prescription_ids'])) {
+if (isset($_POST['delete_selected'])) {
 
-    foreach ($_POST['prescription_ids'] as $prescription_id) {
-        $prescription_id = intval($prescription_id);
+    if (!empty($_POST['prescription_ids'])) {
 
-        // Get image path
-        $getImg = $conn->prepare("SELECT image_path FROM prescriptions WHERE prescription_id = ?");
-        $getImg->bind_param("i", $prescription_id);
-        $getImg->execute();
-        $imgRes = $getImg->get_result()->fetch_assoc();
-        $getImg->close();
+        foreach ($_POST['prescription_ids'] as $pid) {
 
-        // Delete file
-        if ($imgRes && file_exists($imgRes['image_path'])) {
-            unlink($imgRes['image_path']);
+            $pid = intval($pid);
+
+            $getImg = $conn->prepare("SELECT image_path FROM prescriptions WHERE prescription_id = ?");
+            $getImg->bind_param("i", $pid);
+            $getImg->execute();
+            $imgRes = $getImg->get_result()->fetch_assoc();
+            $getImg->close();
+
+            if ($imgRes && file_exists($imgRes['image_path'])) {
+                unlink($imgRes['image_path']);
+            }
+
+            $del = $conn->prepare("DELETE FROM prescriptions WHERE prescription_id = ?");
+            $del->bind_param("i", $pid);
+            $del->execute();
+            $del->close();
         }
-
-        // Delete DB record
-        $del = $conn->prepare("DELETE FROM prescriptions WHERE prescription_id = ?");
-        $del->bind_param("i", $prescription_id);
-        $del->execute();
-        $del->close();
     }
 
     echo "<script>alert('Selected prescriptions deleted successfully'); window.location='profile.php?id=$patient_id';</script>";
     exit;
 }
-
 ?>
 
 <!-- GLightbox CSS -->
@@ -84,17 +84,23 @@ if (isset($_POST['delete_selected']) && isset($_POST['prescription_ids'])) {
     background: #157347;
 }
 
-/* Checkbox position on image */
-.select-box {
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    z-index: 5;
-    transform: scale(1.4);
+/* Delete bar (hidden initially) */
+#deleteBar {
+    display: none;
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    z-index: 900;
 }
 
-.prescription-item {
-    position: relative;
+.delete-btn-floating {
+    background: #dc3545;
+    border: none;
+    padding: 14px 22px;
+    color: white;
+    border-radius: 50px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
 }
 </style>
 
@@ -106,25 +112,18 @@ if (isset($_POST['delete_selected']) && isset($_POST['prescription_ids'])) {
 
       <?php include('includes/navbar.php'); ?>
 
+      <!-- Prescription Gallery -->
       <div class="card mb-5">
+        <div class="card-header d-flex justify-content-start align-items-center">
+          
+          <!-- BACK BUTTON ONLY -->
+          <a href="dashboard.php" class="btn btn-secondary btn-sm">Back</a>
 
-        <!-- HEADER WITH ONLY BACK BUTTON -->
-        <div class="card-header">
-            <a href="dashboard.php" class="btn btn-secondary btn-sm">Back</a>
         </div>
 
-        <!-- Delete Selected Button -->
-        <form method="POST" id="deleteForm">
-
         <div class="card-body">
-          
-          <div id="deleteBar" class="mb-3" style="display:none;">
-            <button type="submit" name="delete_selected" class="btn btn-danger btn-sm">
-              Delete Selected
-            </button>
-          </div>
-
-          <div id="grid" class="row g-3">
+        <form method="POST">
+          <div class="row g-3">
 
             <?php
             $q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
@@ -138,30 +137,37 @@ if (isset($_POST['delete_selected']) && isset($_POST['prescription_ids'])) {
 
             while ($p = $result->fetch_assoc()) {
                 $img = $p['image_path'];
+
                 echo '
-                <div class="col-6 col-md-3 col-lg-2 prescription-item" data-prescription-id="'.$p['prescription_id'].'">
+                <div class="col-6 col-md-3 col-lg-2 position-relative">
 
-                    <!-- checkbox -->
+                    <!-- Checkbox -->
                     <input type="checkbox" 
-                           class="select-box form-check-input"
-                           name="prescription_ids[]" 
-                           value="'.$p['prescription_id'].'"
-                           onclick="toggleDeleteBar();">
+                        class="form-check-input position-absolute select-box"
+                        style="top:8px; left:8px; transform:scale(1.4);"
+                        name="prescription_ids[]" 
+                        value="'.$p['prescription_id'].'"
+                        onchange="toggleDeleteBar()">
 
-                    <!-- GLightbox trigger -->
+                    <!-- GLightbox Trigger -->
                     <a href="'.$img.'" class="glightbox" data-gallery="prescriptions">
-                        <img src="'.$img.'" class="img-fluid rounded shadow-sm"
+                        <img src="'.$img.'" class="img-fluid rounded shadow-sm" 
                         style="height:150px; object-fit:cover; width:100%;">
                     </a>
-
                 </div>';
             }
             ?>
           </div>
 
-        </div>
+          <!-- Floating Delete Button -->
+          <div id="deleteBar">
+            <button class="delete-btn-floating" name="delete_selected" type="submit">
+              Delete Selected
+            </button>
+          </div>
 
-      </form>
+        </form>
+        </div>
       </div>
 
       <?php include('includes/footer.php'); ?>
@@ -169,7 +175,7 @@ if (isset($_POST['delete_selected']) && isset($_POST['prescription_ids'])) {
   </div>
 </main>
 
-<!-- ADD Floating Button -->
+<!-- FLOATING ADD BUTTON -->
 <a href="add-prescription.php?patient_id=<?php echo $patient_id; ?>" class="fab-add">
   <i class="fas fa-plus"></i>
 </a>
@@ -178,13 +184,14 @@ if (isset($_POST['delete_selected']) && isset($_POST['prescription_ids'])) {
 <script src="vendors/glightbox/glightbox.min.js"></script>
 
 <script>
+let lightbox;
 
-// Init Lightbox
 function refreshLightbox() {
-    if (window.lightbox && typeof window.lightbox.destroy === "function") {
-        window.lightbox.destroy();
+    if (lightbox) {
+        try { lightbox.destroy(); } catch(e) {}
     }
-    window.lightbox = GLightbox({
+
+    lightbox = GLightbox({
         selector: '.glightbox',
         touchNavigation: true,
         loop: true,
@@ -192,14 +199,16 @@ function refreshLightbox() {
     });
 }
 
-refreshLightbox();
-
-// Show/hide Delete Selected bar
+// Show floating delete bar only if some checkbox is selected
 function toggleDeleteBar() {
-    const anyChecked = document.querySelectorAll('.select-box:checked').length > 0;
-    document.getElementById("deleteBar").style.display = anyChecked ? "block" : "none";
+    const checked = document.querySelectorAll('.select-box:checked').length;
+    document.getElementById("deleteBar").style.display = checked ? "block" : "none";
 }
 
+// Reinitialize GLightbox once DOM is ready
+document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(refreshLightbox, 150);
+});
 </script>
 
 </body>
