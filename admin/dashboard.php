@@ -6,40 +6,6 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
     exit();
 }
 ?>
-<script>
-// Only activate if PWA is installed (standalone mode)
-function isPWA() {
-    return window.matchMedia('(display-mode: standalone)').matches ||
-           window.navigator.standalone === true; // iOS fallback
-}
-
-// Exit function
-function exitPWA() {
-    if (!isPWA()) {
-        history.back();
-        return;
-    }
-
-    // Try close window
-    window.open('', '_self').close();
-
-    // Android fallback route
-    setTimeout(() => {
-        window.location.href = "about:blank";
-    }, 100);
-}
-
-// DASHBOARD ONLY: Bind hardware back button
-window.addEventListener("popstate", function () {
-    exitPWA();
-});
-
-// Push fake history entry so back triggers popstate
-if (isPWA()) {
-    window.history.pushState({ page: "dashboard" }, "dashboard");
-}
-</script>
-
 <main class="main" id="top">
   <div class="container" data-layout="container">
     <script>
@@ -287,6 +253,31 @@ searchInput.addEventListener('input', () => {
 
 window.addEventListener('load', fetchPatients);
 </script>
+
+<script>
+function isPWA() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           navigator.standalone === true;
+}
+
+function exitApp() {
+    if (navigator.app && navigator.app.exitApp) {
+        navigator.app.exitApp();   // Clean exit on Android
+    } else {
+        history.go(-999);          // Go back until app closes (cleaner than about:blank)
+    }
+}
+
+// Install-only: intercept back button
+if (isPWA()) {
+    history.pushState({exit: true}, "");
+
+    window.addEventListener("popstate", function (e) {
+        exitApp();
+    });
+}
+</script>
+
 
 </body>
 </html>
