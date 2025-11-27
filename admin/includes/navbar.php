@@ -1,31 +1,30 @@
 <nav class="navbar navbar-light navbar-glass navbar-top navbar-expand">
 
-  <!-- Sidebar Toggle -->
-  <button class="btn navbar-toggler-humburger-icon navbar-toggler me-1 me-sm-3" 
-          type="button" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#navbarVerticalCollapse"
-          aria-controls="navbarVerticalCollapse" 
-          aria-expanded="false" 
-          aria-label="Toggle Navigation">
-      <span class="navbar-toggle-icon"><span class="toggle-line"></span></span>
-  </button>
+  <!-- Left Spacer + Sidebar Toggle -->
+  <div class="d-flex align-items-center flex-grow-1">
+      <button class="btn navbar-toggler-humburger-icon navbar-toggler me-2" 
+              type="button" 
+              data-bs-toggle="collapse" 
+              data-bs-target="#navbarVerticalCollapse"
+              aria-controls="navbarVerticalCollapse" 
+              aria-expanded="false" 
+              aria-label="Toggle Navigation">
+          <span class="navbar-toggle-icon"><span class="toggle-line"></span></span>
+      </button>
+  </div>
 
-  <!-- Brand -->
-  <a class="navbar-brand me-1 me-sm-3" href="index.php">
-    <div class="d-flex align-items-center">
-      <!-- <img class="me-2" src="assets/img/icons/clinic-logo.png" alt="" width="38" /> -->
-      <span class="font-sans-serif fw-bold">Rec Vault</span>
-    </div>
-  </a>
+  <!-- CENTER BRAND -->
+  <div class="mx-auto text-center">
+      <a class="navbar-brand" href="index.php">
+          <span class="font-sans-serif fw-bold">Rec Vault</span>
+      </a>
+  </div>
 
-  <!-- Left Spacer -->
-  <ul class="navbar-nav align-items-center d-none d-lg-block"></ul>
+  <!-- Right Icons Spacer -->
+  <div class="flex-grow-1 d-flex justify-content-end">
+      <ul class="navbar-nav navbar-nav-icons flex-row align-items-center">
+          <!-- future icons go here -->
+      </ul>
+  </div>
 
-  <!-- Right Icons -->
-  <ul class="navbar-nav navbar-nav-icons ms-auto flex-row align-items-center">
-
-
-
-  </ul>
 </nav>
