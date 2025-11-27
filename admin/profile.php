@@ -277,14 +277,19 @@ function toggleDeleteBar() {
    Add Delete Button Inside Lightbox
 ------------------------------- */
 function addDeleteButtonToLightbox() {
+    const slides = document.querySelectorAll('.gslide');
 
-    document.querySelectorAll('.gslide').forEach(slide => {
+    slides.forEach((slide, index) => {
+
+        // avoid duplicate buttons
         if (slide.querySelector('.delete-in-lightbox')) return;
 
-        const img = slide.querySelector('img');
-        if (!img) return;
+        // get original <a> element from GLightbox internal array
+        const originalNode = lightbox.elements[index].node;
 
-        const pid = img.closest('a').dataset.prescriptionId;
+        if (!originalNode) return;
+
+        const pid = originalNode.dataset.prescriptionId;
         if (!pid) return;
 
         const delBtn = document.createElement("button");
@@ -305,14 +310,13 @@ function addDeleteButtonToLightbox() {
             zIndex: "999999"
         });
 
-        delBtn.onclick = function() {
+        delBtn.onclick = function () {
             if (!confirm("Delete this prescription?")) return;
 
             fetch("delete-one.php", {
                 method: "POST",
                 body: new URLSearchParams({ id: pid })
             })
-            .then(res => res.text())
             .then(() => location.reload());
         };
 
