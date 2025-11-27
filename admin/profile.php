@@ -122,8 +122,8 @@ if (isset($_POST['delete_selected'])) {
 #deleteBar {
     display: none;
     position: fixed;
-    bottom: 105px;
-    right: 20px;
+    bottom: 35px;
+    left: 20px;
     z-index: 900;
 }
 
@@ -201,7 +201,7 @@ if (isset($_POST['delete_selected'])) {
           <!-- Floating delete button -->
           <div id="deleteBar">
             <button class="delete-btn-floating" name="delete_selected" type="submit">
-              Delete Selected
+              Delete
             </button>
           </div>
 
