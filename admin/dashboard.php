@@ -6,6 +6,40 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
     exit();
 }
 ?>
+<script>
+// Only activate if PWA is installed (standalone mode)
+function isPWA() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true; // iOS fallback
+}
+
+// Exit function
+function exitPWA() {
+    if (!isPWA()) {
+        history.back();
+        return;
+    }
+
+    // Try close window
+    window.open('', '_self').close();
+
+    // Android fallback route
+    setTimeout(() => {
+        window.location.href = "about:blank";
+    }, 100);
+}
+
+// DASHBOARD ONLY: Bind hardware back button
+window.addEventListener("popstate", function () {
+    exitPWA();
+});
+
+// Push fake history entry so back triggers popstate
+if (isPWA()) {
+    window.history.pushState({ page: "dashboard" }, "dashboard");
+}
+</script>
+
 <main class="main" id="top">
   <div class="container" data-layout="container">
     <script>
