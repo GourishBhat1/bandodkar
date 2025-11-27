@@ -220,7 +220,7 @@ if (isset($_POST['delete_selected'])) {
   <i class="fas fa-camera"></i>
 </label>
 
-<input type="file" id="uploadPrescription" accept="image/*"
+<input type="file" id="uploadPrescription"
        style="display:none;" onchange="autoUpload()">
 
 <!-- GLightbox JS -->
