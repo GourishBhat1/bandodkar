@@ -176,7 +176,7 @@ if (isset($_POST['delete_selected'])) {
                 $img = $p['image_path'];
 
                 echo '
-                <div class="col-6 col-md-3 col-lg-2 position-relative">
+                <div class="col-12 col-md-12 col-lg-2 position-relative">
 
                     <!-- Checkbox -->
                     <input type="checkbox" 
@@ -189,7 +189,7 @@ if (isset($_POST['delete_selected'])) {
                     <!-- GLightbox -->
                     <a href="'.$img.'" class="glightbox" data-gallery="prescriptions">
                         <img src="'.$img.'" class="img-fluid rounded shadow-sm" 
-                        style="height:150px; object-fit:cover; width:100%;">
+                        style="height:300px; object-fit:cover; width:100%;">
                     </a>
                 </div>';
             }
