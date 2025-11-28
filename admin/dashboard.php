@@ -77,6 +77,8 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
 <!-- CARD UI -->
 <style>
 .patient-card {
@@ -230,20 +232,42 @@ async function fetchPatients() {
   }
 }
 
-function deletePatient(id) {
-  if (!confirm("Are you sure you want to delete this patient?")) return;
-
-  fetch("delete-patient.php?id=" + id)
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === "success") {
-        alert("Patient deleted successfully");
-        fetchPatients();
-      } else {
-        alert("Error: " + data.message);
-      }
-    })
-    .catch(() => alert("Error deleting patient."));
+async function deletePatient(id) {
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this action.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!'
+  });
+  
+  if (result.isConfirmed) {
+    fetch("delete-patient.php?id=" + id)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          Swal.fire({
+            title: 'Deleted successfully',
+            icon: 'success'
+          });
+          fetchPatients();
+        } else {
+          Swal.fire({
+            title: 'Error',
+            text: data.message,
+            icon: 'error'
+          });
+        }
+      })
+      .catch(() => {
+        Swal.fire({
+          title: 'Error deleting patient',
+          icon: 'error'
+        });
+      });
+  }
 }
 
 searchInput.addEventListener('input', () => {
