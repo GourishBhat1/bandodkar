@@ -80,7 +80,6 @@ if (isset($_POST['delete_selected'])) {
 }
 ?>
 
-<!-- Fancybox CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1/dist/fancybox/fancybox.css"/>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -116,6 +115,16 @@ if (isset($_POST['delete_selected'])) {
     color: white;
     border-radius: 50%;
     font-size: 22px;
+}
+
+/* --- Upload Progress Bar --- */
+#uploadProgress {
+    display:none;
+    position:fixed;
+    bottom:110px;
+    right:20px;
+    z-index:9999;
+    width:200px;
 }
 </style>
 
@@ -184,37 +193,62 @@ if (isset($_POST['delete_selected'])) {
     </div>
 </main>
 
-<!-- Upload Button -->
+<!-- Upload floating button -->
 <label for="uploadPrescription" class="fab-upload">
   <i class="fas fa-camera"></i>
 </label>
 <input type="file" id="uploadPrescription" style="display:none;" onchange="autoUpload()">
 
+<!-- Upload Progress -->
+<div id="uploadProgress">
+    <div class="progress">
+        <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+             role="progressbar" style="width:0%">0%</div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1/dist/fancybox/fancybox.umd.js"></script>
 
 <script>
+/* ----------------------------------------
+   FILE UPLOAD WITH PROGRESS BAR
+-----------------------------------------*/
 function autoUpload() {
     let f = document.getElementById("uploadPrescription");
     if (!f.files.length) return;
 
+    document.getElementById("uploadProgress").style.display = "block";
+    let bar = document.getElementById("uploadProgressBar");
+
+    let xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener("progress", function(e) {
+        if (e.lengthComputable) {
+            let percent = Math.round((e.loaded / e.total) * 100);
+            bar.style.width = percent + "%";
+            bar.textContent = percent + "%";
+        }
+    });
+
+    xhr.onload = function() {
+        document.getElementById("uploadProgress").style.display = "none";
+        location.reload();
+    };
+
+    xhr.open("POST", "profile.php?id=<?php echo $patient_id; ?>");
     let form = new FormData();
     form.append("auto_upload", "1");
     form.append("image", f.files[0]);
-
-    fetch("profile.php?id=<?php echo $patient_id; ?>", {
-        method: "POST",
-        body: form
-    }).then(() => location.reload());
+    xhr.send(form);
 }
 
+/* Show Delete Bar */
 function toggleDeleteBar() {
     let any = document.querySelectorAll('.form-check-input:checked').length;
     document.getElementById("deleteBar").style.display = any ? "block" : "none";
 }
 
-/* -------------------------------------------
-   SWEETALERT CONFIRMATION FOR BULK DELETE
---------------------------------------------*/
+/* SweetAlert for Bulk Delete */
 function confirmBulkDelete() {
     Swal.fire({
         title: "Delete selected images?",
@@ -231,7 +265,7 @@ function confirmBulkDelete() {
     });
 }
 
-/* Fancybox */
+/* Fancybox Init */
 Fancybox.bind("[data-fancybox='gallery']");
 </script>
 
