@@ -284,20 +284,11 @@ function isPWA() {
            navigator.standalone === true;
 }
 
-function exitApp() {
-    if (navigator.app && navigator.app.exitApp) {
-        navigator.app.exitApp();   // Clean exit on Android
-    } else {
-        history.go(-999);          // Go back until app closes (cleaner than about:blank)
-    }
-}
-
-// Install-only: intercept back button
 if (isPWA()) {
-    history.pushState({exit: true}, "");
+    history.pushState({}, "");
 
-    window.addEventListener("popstate", function (e) {
-        exitApp();
+    window.addEventListener("popstate", function () {
+        window.location.href = "https://google.com"; // exits PWA
     });
 }
 </script>
