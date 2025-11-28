@@ -104,8 +104,8 @@ if (isset($_POST['delete_selected'])) {
 #deleteBar {
     display: none;
     position: fixed;
-    bottom: 40px;
-    left: 20px;
+    bottom: 25px;
+    left: 25px;
     z-index: 900;
 }
 .delete-btn-floating {
