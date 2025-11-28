@@ -226,7 +226,6 @@ if (isset($_POST['delete_selected'])) {
 </label>
 
 <input type="file" id="uploadPrescription"
-       accept="image/*" capture="environment"
        style="display:none;" onchange="autoUpload()">
 
 <!-- GLightbox JS -->
