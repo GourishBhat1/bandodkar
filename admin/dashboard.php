@@ -279,16 +279,39 @@ window.addEventListener('load', fetchPatients);
 </script>
 
 <script>
+/* Check if running as PWA */
 function isPWA() {
     return window.matchMedia('(display-mode: standalone)').matches ||
            navigator.standalone === true;
 }
 
-if (isPWA()) {
-    history.pushState({}, "");
+/* Safe exit logic */
+function tryExitPWA() {
+    // 1. Try hard close (may succeed on Android Chrome)
+    window.close();
 
-    window.addEventListener("popstate", function () {
-        window.location.href = "https://google.com"; // exits PWA
+    // 2. Try Android WebView API (Cordova-style)
+    if (navigator.app && navigator.app.exitApp) {
+        navigator.app.exitApp();
+    }
+
+    // 3. Fallback: Go to a blank local endpoint (clean exit illusion)
+    window.location.href = "about:blank";
+}
+
+/* Enable exit on BACK button ONLY on dashboard */
+if (isPWA()) {
+
+    // Push a state so back button triggers popstate
+    history.pushState({ pwaExit: true }, "");
+
+    window.addEventListener("popstate", function (event) {
+        if (event.state && event.state.pwaExit) {
+            tryExitPWA();
+        } else {
+            // Normal navigation backup
+            history.back();
+        }
     });
 }
 </script>
