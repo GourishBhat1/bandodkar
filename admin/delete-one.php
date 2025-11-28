@@ -6,6 +6,7 @@ if (!isset($_POST['id'])) {
 }
 
 $pid = intval($_POST['id']);
+$patient_id = intval($_POST['patientid']);
 
 $get = $conn->prepare("SELECT image_path FROM prescriptions WHERE prescription_id=?");
 $get->bind_param("i", $pid);
@@ -22,5 +23,7 @@ $del->bind_param("i", $pid);
 $del->execute();
 $del->close();
 
-echo "OK";
+// Redirect back to profile.php with the id in the URL
+header('Location: profile.php?id=' . $patient_id);
+exit;
 ?>

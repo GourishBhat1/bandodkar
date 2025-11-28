@@ -37,7 +37,9 @@ if (!$patient) {
 if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
 
     $target_dir = "uploads/prescriptions/";
-    if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
+    if (!is_dir($target_dir)) {
+        mkdir($target_dir, 0777, true);
+    }
 
     $image_name = time() . "_" . basename($_FILES["image"]["name"]);
     $target_file = $target_dir . $image_name;
@@ -57,11 +59,11 @@ if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
 }
 
 /* ------------------------------------------------------------------
-   DELETE SELECTED ITEMS
+   DELETE SELECTED CHECKBOX ITEMS
 ------------------------------------------------------------------ */
 if (isset($_POST['delete_selected'])) {
-
     if (!empty($_POST['prescription_ids'])) {
+
         foreach ($_POST['prescription_ids'] as $pid) {
 
             $pid = intval($pid);
@@ -72,7 +74,9 @@ if (isset($_POST['delete_selected'])) {
             $imgRes = $getImg->get_result()->fetch_assoc();
             $getImg->close();
 
-            if ($imgRes && file_exists($imgRes['image_path'])) unlink($imgRes['image_path']);
+            if ($imgRes && file_exists($imgRes['image_path'])) {
+                unlink($imgRes['image_path']);
+            }
 
             $del = $conn->prepare("DELETE FROM prescriptions WHERE prescription_id = ?");
             $del->bind_param("i", $pid);
@@ -108,9 +112,11 @@ if (isset($_POST['delete_selected'])) {
     box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     cursor: pointer;
 }
-.fab-upload:hover { background: #157347; }
+.fab-upload:hover {
+    background: #157347;
+}
 
-/* Floating Delete Bar (Left) */
+/* Floating Delete Bar */
 #deleteBar {
     display: none;
     position: fixed;
@@ -122,23 +128,19 @@ if (isset($_POST['delete_selected'])) {
 .delete-btn-floating {
     background: #dc3545;
     border: none;
-    padding: 12px 22px;
+    padding: 14px 22px;
     color: white;
     border-radius: 50px;
     font-weight: 600;
     box-shadow: 0 4px 16px rgba(0,0,0,0.25);
 }
-
-/* Dustbin icon inside GLightbox */
-.delete-in-lightbox i { pointer-events: none; }
 </style>
 
 <main class="main" id="top">
   <div class="container" data-layout="container">
-
     <?php include('includes/sidebar.php'); ?>
-    <div class="content">
 
+    <div class="content">
       <?php include('includes/navbar.php'); ?>
 
       <div class="card mb-5">
@@ -156,11 +158,27 @@ if (isset($_POST['delete_selected'])) {
             $q->execute();
             $result = $q->get_result();
 
-            if ($result->num_rows == 0) echo "<p class='text-muted'>No prescriptions uploaded.</p>";
+            if ($result->num_rows == 0) {
+                echo "<p class='text-muted'>No prescriptions uploaded.</p>";
+            }
 
             while ($p = $result->fetch_assoc()) {
                 $img = $p['image_path'];
                 $pid = $p['prescription_id'];
+
+                /* 
+                  OPTION B:
+                  Add delete button inside GLightbox description
+                */
+                $caption = '
+                    <div style="margin-top:10px; text-align:center;">
+                        <form method=\'POST\' action=\'delete-one.php\' style="display:inline;">
+                            <input type="hidden" name="id" value="'.$pid.'">
+                            <input type="hidden" name="patientid" value="'.$patient_id.'">
+                            <button class="btn btn-danger btn-sm delete-btn-floating"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </div>
+                ';
 
                 echo '
                 <div class="col-12 col-md-12 col-lg-2 position-relative">
@@ -175,8 +193,9 @@ if (isset($_POST['delete_selected'])) {
                     <a href="'.$img.'" 
                        class="glightbox"
                        data-gallery="prescriptions"
-                       data-prescription-id="'.$pid.'">
-                        <img src="'.$img.'" class="img-fluid rounded shadow-sm"
+                       data-description="'.htmlspecialchars($caption, ENT_QUOTES).'">
+
+                        <img src="'.$img.'" class="img-fluid rounded shadow-sm" 
                         style="height:300px; object-fit:cover; width:100%;">
                     </a>
                 </div>';
@@ -185,7 +204,7 @@ if (isset($_POST['delete_selected'])) {
 
           </div>
 
-          <!-- Floating Delete Button (Left) -->
+          <!-- Bottom-left Delete Selected -->
           <div id="deleteBar">
             <button class="delete-btn-floating" name="delete_selected" type="submit">
               Delete
@@ -197,17 +216,17 @@ if (isset($_POST['delete_selected'])) {
       </div>
 
       <?php include('includes/footer.php'); ?>
-
     </div>
   </div>
 </main>
 
-<!-- Floating camera upload button -->
+<!-- Floating Upload Button -->
 <label for="uploadPrescription" class="fab-upload">
   <i class="fas fa-camera"></i>
 </label>
 
 <input type="file" id="uploadPrescription"
+       accept="image/*" capture="environment"
        style="display:none;" onchange="autoUpload()">
 
 <!-- GLightbox JS -->
@@ -216,68 +235,19 @@ if (isset($_POST['delete_selected'])) {
 <script>
 let lightbox;
 
-/* -------------------------------
-   Refresh GLightbox (Correct event)
-------------------------------- */
+/* Init GLightbox */
 function refreshLightbox() {
-    if (lightbox) try { lightbox.destroy(); } catch(e) {}
+    if (lightbox) try { lightbox.destroy(); } catch (e) {}
 
     lightbox = GLightbox({
         selector: '.glightbox',
-        touchNavigation: true,
         loop: true,
-        zoomable: true
-    });
-
-    // THIS is the correct event that always works.
-    lightbox.on('slide_inserted', function({ slide, index }) {
-
-        // Prevent duplicates
-        if (slide.querySelector('.delete-in-lightbox')) return;
-
-        const originalNode = lightbox.elements[index].node;
-        if (!originalNode) return;
-
-        const pid = originalNode.dataset.prescriptionId;
-        if (!pid) return;
-
-        // Create delete button
-        const delBtn = document.createElement("button");
-        delBtn.innerHTML = '<i class="fas fa-trash"></i>';
-        delBtn.className = "delete-in-lightbox";
-
-        Object.assign(delBtn.style, {
-            position: "absolute",
-            top: "20px",
-            right: "20px",
-            background: "rgba(220,53,69,0.95)",
-            border: "none",
-            color: "white",
-            padding: "10px 14px",
-            borderRadius: "50%",
-            fontSize: "18px",
-            cursor: "pointer",
-            zIndex: "999999"
-        });
-
-        delBtn.onclick = function(e) {
-            e.stopPropagation();
-            if (!confirm("Delete this prescription?")) return;
-
-            fetch("delete-one.php", {
-                method: "POST",
-                body: new URLSearchParams({ id: pid })
-            })
-            .then(() => location.reload());
-        };
-
-        slide.appendChild(delBtn);
+        zoomable: true,
+        touchNavigation: true,
     });
 }
 
-/* -------------------------------
-   Auto Upload
-------------------------------- */
+/* Auto upload */
 function autoUpload() {
     const fileInput = document.getElementById("uploadPrescription");
     if (!fileInput.files.length) return;
@@ -287,17 +257,15 @@ function autoUpload() {
     form.append("image", fileInput.files[0]);
 
     fetch("profile.php?id=<?php echo $patient_id; ?>", {
-        method: "POST", body: form
-    })
-    .then(() => location.reload());
+        method: "POST",
+        body: form
+    }).then(() => location.reload());
 }
 
-/* -------------------------------
-   Checkbox Delete Bar
-------------------------------- */
+/* Show delete selected bar */
 function toggleDeleteBar() {
-    const count = document.querySelectorAll('.select-box:checked').length;
-    document.getElementById("deleteBar").style.display = count ? "block" : "none";
+    const checked = document.querySelectorAll('.select-box:checked').length;
+    document.getElementById("deleteBar").style.display = checked ? "block" : "none";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
