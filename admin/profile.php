@@ -111,7 +111,7 @@ if (isset($_POST['delete_selected'])) {
 .delete-btn-floating {
     background: #dc3545;
     border: none;
-    padding: 14px 18px;
+    padding: 15px 20px;
     color: white;
     border-radius: 50%;
     font-size: 22px;
