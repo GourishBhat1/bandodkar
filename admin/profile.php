@@ -138,14 +138,14 @@ if (isset($_POST['delete_selected'])) {
     font-size: 22px;
 }
 
-/* Upload Progress Bar */
 #uploadProgress {
-    display:none;
-    position:fixed;
-    bottom:110px;
-    right:20px;
-    z-index:9999;
-    width:200px;
+    display: none;
+    position: fixed;
+    bottom: 85px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 230px;
 }
 </style>
 
