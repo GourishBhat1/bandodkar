@@ -32,14 +32,31 @@ if (!$patient) {
 /* ========== AUTO UPLOAD ========== */
 if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
 
+    $allowed_types = ['image/jpeg', 'image/png', 'image/jpg'];
+    $allowed_ext   = ['jpg', 'jpeg', 'png'];
+
+    $file_type = $_FILES['image']['type'];
+    $file_ext  = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+
+    // Validate image type
+    if (!in_array($file_type, $allowed_types) || !in_array($file_ext, $allowed_ext)) {
+        echo "<script>alert('Invalid file type. Only JPEG and PNG images are allowed.');</script>";
+        exit;
+    }
+
     $target_dir = "uploads/prescriptions/";
     if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
 
     $image_name = time() . "_" . basename($_FILES["image"]["name"]);
     $path = $target_dir . $image_name;
 
-    move_uploaded_file($_FILES["image"]["tmp_name"], $path);
+    // Attempt upload
+    if (!move_uploaded_file($_FILES["image"]["tmp_name"], $path)) {
+        echo "<script>alert('Error uploading file. Please try again later.');</script>";
+        exit;
+    }
 
+    // Insert in DB
     $stmt = $conn->prepare("
         INSERT INTO prescriptions 
         (patient_id, doctor_name, date_prescribed, description, image_path, created_at, updated_at)
@@ -49,8 +66,10 @@ if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
     $stmt->execute();
     $stmt->close();
 
+    // No success alert—reload page silently
     exit;
 }
+
 
 /* ========== BULK DELETE ========== */
 if (isset($_POST['delete_selected'])) {
