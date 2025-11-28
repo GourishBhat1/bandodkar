@@ -18,7 +18,6 @@ if (!isset($_GET['id'])) {
 
 $patient_id = intval($_GET['id']);
 
-// Fetch patient
 $stmt = $conn->prepare("SELECT * FROM patients WHERE patient_id = ?");
 $stmt->bind_param("i", $patient_id);
 $stmt->execute();
@@ -30,7 +29,7 @@ if (!$patient) {
     exit;
 }
 
-/* ========== AUTO-UPLOAD HANDLER ========== */
+/* ========== AUTO UPLOAD ========== */
 if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
 
     $target_dir = "uploads/prescriptions/";
@@ -46,7 +45,6 @@ if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
         (patient_id, doctor_name, date_prescribed, description, image_path, created_at, updated_at)
         VALUES (?, 'Dr. Bandodkar', CURDATE(), '', ?, NOW(), NOW())
     ");
-
     $stmt->bind_param("is", $patient_id, $path);
     $stmt->execute();
     $stmt->close();
@@ -68,9 +66,7 @@ if (isset($_POST['delete_selected'])) {
             $imgRes = $getImg->get_result()->fetch_assoc();
             $getImg->close();
 
-            if ($imgRes && file_exists($imgRes['image_path'])) {
-                unlink($imgRes['image_path']);
-            }
+            if ($imgRes && file_exists($imgRes['image_path'])) unlink($imgRes['image_path']);
 
             $del = $conn->prepare("DELETE FROM prescriptions WHERE prescription_id = ?");
             $del->bind_param("i", $pid);
@@ -84,8 +80,9 @@ if (isset($_POST['delete_selected'])) {
 }
 ?>
 
-<!-- Fancybox v6 -->
+<!-- Fancybox CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1/dist/fancybox/fancybox.css"/>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
 .fab-upload {
@@ -115,87 +112,83 @@ if (isset($_POST['delete_selected'])) {
 .delete-btn-floating {
     background: #dc3545;
     border: none;
-    padding: 14px 22px;
+    padding: 14px 18px;
     color: white;
-    border-radius: 50px;
-    font-weight: 600;
+    border-radius: 50%;
+    font-size: 22px;
 }
 </style>
 
 <main class="main" id="top">
-  <div class="container" data-layout="container">
+    <div class="container" data-layout="container">
+        <?php include('includes/sidebar.php'); ?>
+        <div class="content">
 
-    <?php include('includes/sidebar.php'); ?>
-    <div class="content">
+            <?php include('includes/navbar.php'); ?>
 
-      <?php include('includes/navbar.php'); ?>
+            <div class="card mb-5">
+                <div class="card-header">
+                    <a href="dashboard.php" class="btn btn-secondary btn-sm">Back</a>
+                </div>
 
-      <div class="card mb-5">
-        <div class="card-header">
-          <a href="dashboard.php" class="btn btn-secondary btn-sm">Back</a>
+                <div class="card-body">
+
+                <form method="POST" id="bulkDeleteForm">
+                    <div class="row g-3">
+
+                    <?php
+                    $q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
+                    $q->bind_param("i", $patient_id);
+                    $q->execute();
+                    $res = $q->get_result();
+
+                    while ($p = $res->fetch_assoc()) {
+                        $img = $p['image_path'];
+                        $pid = $p['prescription_id'];
+
+                        echo "
+                        <div class='col-12 col-md-6 col-lg-2 position-relative'>
+                            <input type='checkbox'
+                                class='form-check-input position-absolute'
+                                style='top:8px; left:8px; transform:scale(1.4);'
+                                name='prescription_ids[]'
+                                value='$pid'
+                                onchange='toggleDeleteBar()'>
+
+                            <a href='$img' data-fancybox='gallery' data-pid='$pid'>
+                                <img src='$img' class='img-fluid rounded shadow-sm'
+                                    style='height:300px; object-fit:cover; width:100%;'>
+                            </a>
+                        </div>";
+                    }
+                    ?>
+
+                    </div>
+
+                    <input type="hidden" name="delete_selected" value="1">
+
+                    <div id="deleteBar">
+                        <button type="button" class="delete-btn-floating" onclick="confirmBulkDelete()">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+
+                </form>
+
+                </div>
+            </div>
+
+            <?php include('includes/footer.php'); ?>
+
         </div>
-
-        <div class="card-body">
-
-        <form method="POST">
-          <div class="row g-3">
-
-<?php
-$q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
-$q->bind_param("i", $patient_id);
-$q->execute();
-$res = $q->get_result();
-
-while ($p = $res->fetch_assoc()) {
-    $img = $p['image_path'];
-    $pid = $p['prescription_id'];
-
-    echo '
-    <div class="col-12 col-md-6 col-lg-2 position-relative">
-
-        <input type="checkbox"
-               class="form-check-input position-absolute"
-               style="top:8px; left:8px; transform:scale(1.4);"
-               name="prescription_ids[]"
-               value="'.$pid.'"
-               onchange="toggleDeleteBar()">
-
-        <a href="'.$img.'"
-           data-fancybox="gallery"
-           data-pid="'.$pid.'">
-            <img src="'.$img.'" class="img-fluid rounded shadow-sm"
-                 style="height:300px; object-fit:cover; width:100%;">
-        </a>
-
-    </div>';
-}
-?>
-
-          </div>
-
-          <div id="deleteBar">
-            <button class="delete-btn-floating" name="delete_selected" type="submit">
-              <i class="fa fa-trash"></i>
-            </button>
-          </div>
-
-        </form>
-
-        </div>
-      </div>
-
-      <?php include('includes/footer.php'); ?>
     </div>
-  </div>
 </main>
 
-<!-- Upload floating button -->
+<!-- Upload Button -->
 <label for="uploadPrescription" class="fab-upload">
   <i class="fas fa-camera"></i>
 </label>
-
-<input type="file" id="uploadPrescription"
-       style="display:none;" onchange="autoUpload()">
+<input type="file" id="uploadPrescription" style="display:none;" onchange="autoUpload()">
 
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1/dist/fancybox/fancybox.umd.js"></script>
 
@@ -219,45 +212,27 @@ function toggleDeleteBar() {
     document.getElementById("deleteBar").style.display = any ? "block" : "none";
 }
 
-/* ============================================================
-   FANCYBOX WITH DELETE BUTTON (Toolbar)
-============================================================ */
-Fancybox.bind("[data-fancybox='gallery']", {
-    Toolbar: {
-        display: {
-            left: [],
-            middle: ["deleteBtn"],
-            right: ["zoom", "fullscreen", "download", "close"]
-        },
-        items: {
-            deleteBtn: {
-                type: "button",
-                html: "<i class='fa fa-trash' style='color:#ff4d4d; font-size:20px;'></i>",
-                click: (instance, slide) => {
-
-                    let pid = slide.trigger?.dataset?.pid;
-
-                    if (!pid) {
-                        alert("Could not read image ID.");
-                        return;
-                    }
-
-                    if (!confirm("Delete this image?")) return;
-
-                    fetch("delete-one.php", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                        body: new URLSearchParams({ id: pid })
-                    })
-                    .then(() => {
-                        instance.close();
-                        setTimeout(() => location.reload(), 300);
-                    });
-                }
-            }
+/* -------------------------------------------
+   SWEETALERT CONFIRMATION FOR BULK DELETE
+--------------------------------------------*/
+function confirmBulkDelete() {
+    Swal.fire({
+        title: "Delete selected images?",
+        text: "This action cannot be undone.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Delete"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById("bulkDeleteForm").submit();
         }
-    }
-});
+    });
+}
+
+/* Fancybox */
+Fancybox.bind("[data-fancybox='gallery']");
 </script>
 
 </body>
