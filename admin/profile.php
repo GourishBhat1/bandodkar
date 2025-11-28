@@ -29,7 +29,9 @@ if (!$patient) {
     exit;
 }
 
-/* ========== AUTO UPLOAD ========== */
+/* ------------------------------------
+   AUTO UPLOAD HANDLER
+-------------------------------------*/
 if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
 
     $allowed_types = ['image/jpeg', 'image/png', 'image/jpg'];
@@ -38,7 +40,6 @@ if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
     $file_type = $_FILES['image']['type'];
     $file_ext  = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
 
-    // Validate image type
     if (!in_array($file_type, $allowed_types) || !in_array($file_ext, $allowed_ext)) {
         echo "<script>alert('Invalid file type. Only JPEG and PNG images are allowed.');</script>";
         exit;
@@ -50,13 +51,11 @@ if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
     $image_name = time() . "_" . basename($_FILES["image"]["name"]);
     $path = $target_dir . $image_name;
 
-    // Attempt upload
     if (!move_uploaded_file($_FILES["image"]["tmp_name"], $path)) {
         echo "<script>alert('Error uploading file. Please try again later.');</script>";
         exit;
     }
 
-    // Insert in DB
     $stmt = $conn->prepare("
         INSERT INTO prescriptions 
         (patient_id, doctor_name, date_prescribed, description, image_path, created_at, updated_at)
@@ -66,17 +65,17 @@ if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
     $stmt->execute();
     $stmt->close();
 
-    // No success alert—reload page silently
-    exit;
+    exit; // silent reload after upload
 }
 
-
-/* ========== BULK DELETE ========== */
+/* ------------------------------------
+   BULK DELETE
+-------------------------------------*/
 if (isset($_POST['delete_selected'])) {
 
     if (!empty($_POST['prescription_ids'])) {
-
         foreach ($_POST['prescription_ids'] as $pid) {
+
             $pid = intval($pid);
 
             $getImg = $conn->prepare("SELECT image_path FROM prescriptions WHERE prescription_id = ?");
@@ -99,7 +98,8 @@ if (isset($_POST['delete_selected'])) {
 }
 ?>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1/dist/fancybox/fancybox.css"/>
+<!-- GLightbox -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
@@ -120,6 +120,7 @@ if (isset($_POST['delete_selected'])) {
     box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     cursor: pointer;
 }
+
 #deleteBar {
     display: none;
     position: fixed;
@@ -127,6 +128,7 @@ if (isset($_POST['delete_selected'])) {
     left: 25px;
     z-index: 900;
 }
+
 .delete-btn-floating {
     background: #dc3545;
     border: none;
@@ -136,7 +138,7 @@ if (isset($_POST['delete_selected'])) {
     font-size: 22px;
 }
 
-/* --- Upload Progress Bar --- */
+/* Upload Progress Bar */
 #uploadProgress {
     display:none;
     position:fixed;
@@ -149,9 +151,10 @@ if (isset($_POST['delete_selected'])) {
 
 <main class="main" id="top">
     <div class="container" data-layout="container">
-        <?php include('includes/sidebar.php'); ?>
-        <div class="content">
 
+        <?php include('includes/sidebar.php'); ?>
+
+        <div class="content">
             <?php include('includes/navbar.php'); ?>
 
             <div class="card mb-5">
@@ -164,32 +167,34 @@ if (isset($_POST['delete_selected'])) {
                 <form method="POST" id="bulkDeleteForm">
                     <div class="row g-3">
 
-                    <?php
-                    $q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
-                    $q->bind_param("i", $patient_id);
-                    $q->execute();
-                    $res = $q->get_result();
+                        <?php
+                        $q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
+                        $q->bind_param("i", $patient_id);
+                        $q->execute();
+                        $res = $q->get_result();
 
-                    while ($p = $res->fetch_assoc()) {
-                        $img = $p['image_path'];
-                        $pid = $p['prescription_id'];
+                        while ($p = $res->fetch_assoc()) {
+                            $img = $p['image_path'];
+                            $pid = $p['prescription_id'];
 
-                        echo "
-                        <div class='col-12 col-md-6 col-lg-2 position-relative'>
-                            <input type='checkbox'
-                                class='form-check-input position-absolute'
-                                style='top:8px; left:8px; transform:scale(1.4);'
-                                name='prescription_ids[]'
-                                value='$pid'
-                                onchange='toggleDeleteBar()'>
+                            echo "
+                            <div class='col-12 col-md-6 col-lg-2 position-relative'>
 
-                            <a href='$img' data-fancybox='gallery' data-pid='$pid'>
-                                <img src='$img' class='img-fluid rounded shadow-sm'
-                                    style='height:300px; object-fit:cover; width:100%;'>
-                            </a>
-                        </div>";
-                    }
-                    ?>
+                                <input type='checkbox'
+                                    class='form-check-input position-absolute'
+                                    style='top:8px; left:8px; transform:scale(1.4);'
+                                    name='prescription_ids[]'
+                                    value='$pid'
+                                    onchange='toggleDeleteBar()'>
+
+                                <a href='$img' class='glightbox'>
+                                    <img src='$img' class='img-fluid rounded shadow-sm'
+                                        style='height:300px; object-fit:cover; width:100%;'>
+                                </a>
+
+                            </div>";
+                        }
+                        ?>
 
                     </div>
 
@@ -207,12 +212,11 @@ if (isset($_POST['delete_selected'])) {
             </div>
 
             <?php include('includes/footer.php'); ?>
-
         </div>
     </div>
 </main>
 
-<!-- Upload floating button -->
+<!-- Upload button -->
 <label for="uploadPrescription" class="fab-upload">
   <i class="fas fa-camera"></i>
 </label>
@@ -226,12 +230,21 @@ if (isset($_POST['delete_selected'])) {
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1/dist/fancybox/fancybox.umd.js"></script>
+<!-- GLightbox JS -->
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
 
 <script>
-/* ----------------------------------------
-   FILE UPLOAD WITH PROGRESS BAR
------------------------------------------*/
+/* Init GLightbox */
+document.addEventListener("DOMContentLoaded", function() {
+    GLightbox({
+        selector: '.glightbox',
+        touchNavigation: true,
+        loop: true,
+        zoomable: true
+    });
+});
+
+/* Upload with progress bar */
 function autoUpload() {
     let f = document.getElementById("uploadPrescription");
     if (!f.files.length) return;
@@ -261,13 +274,13 @@ function autoUpload() {
     xhr.send(form);
 }
 
-/* Show Delete Bar */
+/* Show/hide delete bar */
 function toggleDeleteBar() {
     let any = document.querySelectorAll('.form-check-input:checked').length;
     document.getElementById("deleteBar").style.display = any ? "block" : "none";
 }
 
-/* SweetAlert for Bulk Delete */
+/* SweetAlert Bulk Delete */
 function confirmBulkDelete() {
     Swal.fire({
         title: "Delete selected images?",
@@ -283,9 +296,6 @@ function confirmBulkDelete() {
         }
     });
 }
-
-/* Fancybox Init */
-Fancybox.bind("[data-fancybox='gallery']");
 </script>
 
 </body>
