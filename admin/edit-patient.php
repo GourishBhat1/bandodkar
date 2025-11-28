@@ -43,7 +43,7 @@ if (isset($_POST['update'])) {
     $stmt->execute();
     $stmt->close();
 
-    echo "<script>alert('Updated successfully'); window.location='dashboard.php';</script>";
+    echo "<script>window.location='dashboard.php';</script>";
     exit;
 }
 ?>

@@ -47,7 +47,7 @@ if (isset($_POST['create'])) {
     $newId = $stmt->insert_id;
     $stmt->close();
 
-    echo "<script>alert('Patient created successfully!'); window.location='profile.php?id=$newId';</script>";
+    echo "<script>window.location='profile.php?id=$newId';</script>";
     exit;
 }
 ?>

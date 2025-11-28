@@ -79,7 +79,7 @@ if (isset($_POST['submit'])) {
                 <div class="p-4 p-md-5 flex-grow-1">
                   <div class="row flex-between-center">
                     <div class="col-auto">
-                      <h3>Admin Login</h3>
+                      <h3>Login</h3>
                     </div>
                   </div>
 

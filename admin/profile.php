@@ -81,7 +81,7 @@ if (isset($_POST['delete_selected'])) {
         }
     }
 
-    echo "<script>alert('Selected prescriptions deleted'); window.location='profile.php?id=$patient_id';</script>";
+    echo "<script>window.location='profile.php?id=$patient_id';</script>";
     exit;
 }
 ?>
