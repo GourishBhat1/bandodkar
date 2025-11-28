@@ -11,7 +11,6 @@ if (!isset($_COOKIE['user_id']) || empty($_COOKIE['user_id'])) {
     exit();
 }
 
-// Validate patient ID
 if (!isset($_GET['id'])) {
     echo "<script>alert('Invalid patient!'); window.location='dashboard.php';</script>";
     exit;
@@ -31,41 +30,36 @@ if (!$patient) {
     exit;
 }
 
-/* ------------------------------------------------------------------
-   AUTO UPLOAD IMAGE (Floating Button)
------------------------------------------------------------------- */
+/* ========== AUTO-UPLOAD HANDLER ========== */
 if (isset($_POST['auto_upload']) && isset($_FILES['image'])) {
 
     $target_dir = "uploads/prescriptions/";
-    if (!is_dir($target_dir)) {
-        mkdir($target_dir, 0777, true);
-    }
+    if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
 
     $image_name = time() . "_" . basename($_FILES["image"]["name"]);
-    $target_file = $target_dir . $image_name;
+    $path = $target_dir . $image_name;
 
-    move_uploaded_file($_FILES["image"]["tmp_name"], $target_file);
+    move_uploaded_file($_FILES["image"]["tmp_name"], $path);
 
     $stmt = $conn->prepare("
         INSERT INTO prescriptions 
         (patient_id, doctor_name, date_prescribed, description, image_path, created_at, updated_at)
         VALUES (?, 'Dr. Bandodkar', CURDATE(), '', ?, NOW(), NOW())
     ");
-    $stmt->bind_param("is", $patient_id, $target_file);
+
+    $stmt->bind_param("is", $patient_id, $path);
     $stmt->execute();
     $stmt->close();
 
     exit;
 }
 
-/* ------------------------------------------------------------------
-   DELETE SELECTED CHECKBOX ITEMS
------------------------------------------------------------------- */
+/* ========== BULK DELETE ========== */
 if (isset($_POST['delete_selected'])) {
+
     if (!empty($_POST['prescription_ids'])) {
 
         foreach ($_POST['prescription_ids'] as $pid) {
-
             $pid = intval($pid);
 
             $getImg = $conn->prepare("SELECT image_path FROM prescriptions WHERE prescription_id = ?");
@@ -90,11 +84,10 @@ if (isset($_POST['delete_selected'])) {
 }
 ?>
 
-<!-- GLightbox CSS -->
-<link href="vendors/glightbox/glightbox.min.css" rel="stylesheet">
+<!-- Fancybox v6 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1/dist/fancybox/fancybox.css"/>
 
 <style>
-/* Floating Upload Button */
 .fab-upload {
     position: fixed;
     bottom: 25px;
@@ -112,19 +105,13 @@ if (isset($_POST['delete_selected'])) {
     box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     cursor: pointer;
 }
-.fab-upload:hover {
-    background: #157347;
-}
-
-/* Floating Delete Bar */
 #deleteBar {
     display: none;
     position: fixed;
-    bottom: 35px;
+    bottom: 40px;
     left: 20px;
     z-index: 900;
 }
-
 .delete-btn-floating {
     background: #dc3545;
     border: none;
@@ -132,15 +119,15 @@ if (isset($_POST['delete_selected'])) {
     color: white;
     border-radius: 50px;
     font-weight: 600;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
 }
 </style>
 
 <main class="main" id="top">
   <div class="container" data-layout="container">
-    <?php include('includes/sidebar.php'); ?>
 
+    <?php include('includes/sidebar.php'); ?>
     <div class="content">
+
       <?php include('includes/navbar.php'); ?>
 
       <div class="card mb-5">
@@ -149,69 +136,51 @@ if (isset($_POST['delete_selected'])) {
         </div>
 
         <div class="card-body">
+
         <form method="POST">
           <div class="row g-3">
 
-            <?php
-            $q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
-            $q->bind_param("i", $patient_id);
-            $q->execute();
-            $result = $q->get_result();
+<?php
+$q = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id=? ORDER BY prescription_id DESC");
+$q->bind_param("i", $patient_id);
+$q->execute();
+$res = $q->get_result();
 
-            if ($result->num_rows == 0) {
-                echo "<p class='text-muted'>No prescriptions uploaded.</p>";
-            }
+while ($p = $res->fetch_assoc()) {
+    $img = $p['image_path'];
+    $pid = $p['prescription_id'];
 
-            while ($p = $result->fetch_assoc()) {
-                $img = $p['image_path'];
-                $pid = $p['prescription_id'];
+    echo '
+    <div class="col-12 col-md-6 col-lg-2 position-relative">
 
-                /* 
-                  OPTION B:
-                  Add delete button inside GLightbox description
-                */
-                $caption = '
-                    <div style="margin-top:10px; text-align:center;">
-                        <form method=\'POST\' action=\'delete-one.php\'>
-                            <input type="hidden" name="id" value="'.$pid.'">
-                            <input type="hidden" name="patientid" value="'.$patient_id.'">
-                            <button class="btn btn-danger btn-sm delete-btn-floating"><i class="fas fa-trash"></i></button>
-                        </form>
-                    </div>
-                ';
+        <input type="checkbox"
+               class="form-check-input position-absolute"
+               style="top:8px; left:8px; transform:scale(1.4);"
+               name="prescription_ids[]"
+               value="'.$pid.'"
+               onchange="toggleDeleteBar()">
 
-                echo '
-                <div class="col-12 col-md-12 col-lg-2 position-relative">
+        <a href="'.$img.'"
+           data-fancybox="gallery"
+           data-pid="'.$pid.'">
+            <img src="'.$img.'" class="img-fluid rounded shadow-sm"
+                 style="height:300px; object-fit:cover; width:100%;">
+        </a>
 
-                    <input type="checkbox" 
-                        class="form-check-input position-absolute select-box"
-                        style="top:8px; left:8px; transform:scale(1.4);"
-                        name="prescription_ids[]" 
-                        value="'.$pid.'"
-                        onchange="toggleDeleteBar()">
-
-                    <a href="'.$img.'" 
-                       class="glightbox"
-                       data-gallery="prescriptions"
-                       data-description="'.htmlspecialchars($caption, ENT_QUOTES).'">
-
-                        <img src="'.$img.'" class="img-fluid rounded shadow-sm" 
-                        style="height:300px; object-fit:cover; width:100%;">
-                    </a>
-                </div>';
-            }
-            ?>
+    </div>';
+}
+?>
 
           </div>
 
-          <!-- Bottom-left Delete Selected -->
           <div id="deleteBar">
             <button class="delete-btn-floating" name="delete_selected" type="submit">
-              Delete
+              <i class="fa fa-trash"></i>
             </button>
           </div>
 
         </form>
+
         </div>
       </div>
 
@@ -220,7 +189,7 @@ if (isset($_POST['delete_selected'])) {
   </div>
 </main>
 
-<!-- Floating Upload Button -->
+<!-- Upload floating button -->
 <label for="uploadPrescription" class="fab-upload">
   <i class="fas fa-camera"></i>
 </label>
@@ -228,32 +197,16 @@ if (isset($_POST['delete_selected'])) {
 <input type="file" id="uploadPrescription"
        style="display:none;" onchange="autoUpload()">
 
-<!-- GLightbox JS -->
-<script src="vendors/glightbox/glightbox.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1/dist/fancybox/fancybox.umd.js"></script>
 
 <script>
-let lightbox;
-
-/* Init GLightbox */
-function refreshLightbox() {
-    if (lightbox) try { lightbox.destroy(); } catch (e) {}
-
-    lightbox = GLightbox({
-        selector: '.glightbox',
-        loop: true,
-        zoomable: true,
-        touchNavigation: true,
-    });
-}
-
-/* Auto upload */
 function autoUpload() {
-    const fileInput = document.getElementById("uploadPrescription");
-    if (!fileInput.files.length) return;
+    let f = document.getElementById("uploadPrescription");
+    if (!f.files.length) return;
 
-    const form = new FormData();
+    let form = new FormData();
     form.append("auto_upload", "1");
-    form.append("image", fileInput.files[0]);
+    form.append("image", f.files[0]);
 
     fetch("profile.php?id=<?php echo $patient_id; ?>", {
         method: "POST",
@@ -261,14 +214,49 @@ function autoUpload() {
     }).then(() => location.reload());
 }
 
-/* Show delete selected bar */
 function toggleDeleteBar() {
-    const checked = document.querySelectorAll('.select-box:checked').length;
-    document.getElementById("deleteBar").style.display = checked ? "block" : "none";
+    let any = document.querySelectorAll('.form-check-input:checked').length;
+    document.getElementById("deleteBar").style.display = any ? "block" : "none";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(refreshLightbox, 200);
+/* ============================================================
+   FANCYBOX WITH DELETE BUTTON (Toolbar)
+============================================================ */
+Fancybox.bind("[data-fancybox='gallery']", {
+    Toolbar: {
+        display: {
+            left: [],
+            middle: ["deleteBtn"],
+            right: ["zoom", "fullscreen", "download", "close"]
+        },
+        items: {
+            deleteBtn: {
+                type: "button",
+                html: "<i class='fa fa-trash' style='color:#ff4d4d; font-size:20px;'></i>",
+                click: (instance, slide) => {
+
+                    let pid = slide.trigger?.dataset?.pid;
+
+                    if (!pid) {
+                        alert("Could not read image ID.");
+                        return;
+                    }
+
+                    if (!confirm("Delete this image?")) return;
+
+                    fetch("delete-one.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: new URLSearchParams({ id: pid })
+                    })
+                    .then(() => {
+                        instance.close();
+                        setTimeout(() => location.reload(), 300);
+                    });
+                }
+            }
+        }
+    }
 });
 </script>
 
