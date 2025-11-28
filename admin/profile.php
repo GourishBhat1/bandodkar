@@ -172,7 +172,7 @@ if (isset($_POST['delete_selected'])) {
                 */
                 $caption = '
                     <div style="margin-top:10px; text-align:center;">
-                        <form method=\'POST\' action=\'delete-one.php\' style="display:inline;">
+                        <form method=\'POST\' action=\'delete-one.php\'>
                             <input type="hidden" name="id" value="'.$pid.'">
                             <input type="hidden" name="patientid" value="'.$patient_id.'">
                             <button class="btn btn-danger btn-sm delete-btn-floating"><i class="fas fa-trash"></i></button>
